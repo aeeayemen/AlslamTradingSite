@@ -1,0 +1,40 @@
+<li>
+<a href="javascript:;">
+<span class="time">just now</span>
+<span class="details">
+<span class="label label-sm label-icon label-success">
+<i class="fa fa-check"></i>
+</span>
+New user registered. </span>
+</a>
+</li>
+<li>
+<a href="javascript:;">
+<span class="time">3 mins</span>
+<span class="details">
+<span class="label label-sm label-icon label-danger">
+<i class="fa fa-bolt"></i>
+</span>
+Server #12 overloaded. </span>
+</a>
+</li>
+<li>
+<a href="javascript:;">
+<span class="time">10 mins</span>
+<span class="details">
+<span class="label label-sm label-icon label-warning">
+<i class="fa fa-bell-o"></i>
+</span>
+Server #2 not responding. </span>
+</a>
+</li>
+<li>
+<a href="javascript:;">
+<span class="time">14 hrs</span>
+<span class="details">
+<span class="label label-sm label-icon label-info">
+<i class="fa fa-bullhorn"></i>
+</span>
+Application error. </span>
+</a>
+</li>

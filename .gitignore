@@ -1,0 +1,19 @@
+# Archives & Large files
+codetiny.zip
+*.tar.gz
+*.rar
+
+# Logs & Temp files
+error_log
+*.log
+scratch/
+test_*.php
+test_*.txt
+*.tmp
+
+# Temporary debug files
+admin_index_*.html
+fsout*.html
+remout.txt
+fsize.txt
+fix_adodb.py

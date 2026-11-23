@@ -1,0 +1,5 @@
+# Deny access to App_constant.php file
+<files App_constant.php>
+order allow,deny
+deny from all
+</files>
