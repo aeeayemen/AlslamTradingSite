@@ -2209,12 +2209,12 @@ class jqgrid
 		}
 
 		// generate main json
-		if (isset($_GET['jqgrid_page']))
+		if (isset($_REQUEST['jqgrid_page']))
 		{
-			$page = intval($_GET['jqgrid_page']); // get the requested page
-			$limit = intval($_GET['rows']); // get how many rows we want to have into the grid
-			$sidx = $_GET['sidx']; // get index row - i.e. user click to sort
-			$sord = $_GET['sord']; // get the direction
+			$page = intval($_REQUEST['jqgrid_page']); // get the requested page
+			$limit = intval($_REQUEST['rows'] ?? 20); // get how many rows we want to have into the grid
+			$sidx = $_REQUEST['sidx'] ?? '1'; // get index row - i.e. user click to sort
+			$sord = $_REQUEST['sord'] ?? 'asc'; // get the direction
 
 			// if set, use dbname for sorting
 			foreach ($this->options["colModel"] as $c)

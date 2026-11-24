@@ -229,103 +229,55 @@ $grid->set_events($e);
 
 function add_data($data)
 {
-    global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;  
+    global $Applogins_cls, $app_func;
+    $userid = $Applogins_cls->useridx;  
  
-    $lang_id=$app_func->GetOrderTable('lang_id','languages');
-$User_names=$_SESSION['AppLoginName'];
-$lang_title=$data["params"]["lang_title"]; 
-$mss=date('Y-m-d');
-$add_dates=$mss;
-$Last_Modifys=$add_dates;
-$Is_actives=$data["params"]["Is_Actieved"];
-$dirction=$data["params"]["dirction"];
-$newquerys="insert into  languages (lang_id,lang_title,dirction,Is_Actieved,creating_date,User_name,User_id) values 
-($lang_id,'$lang_title','$dirction','$Is_actives','$add_dates','$User_names','$userid')";
- 
-$result = $app_func->query($newquerys);
-if (!$result) {
-   
-   $errs=$app_func->error();
-   $k1="Proposal_type_name_ar_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-    phpgrid_error("لايُسمح بادخال اسم متكرر تأكد من التسمية- عربي");
-   }
-   $k1="Proposal_type_name_en_uk";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-    phpgrid_error("لايُسمح بادخال اسم متكرر تأكد من التسمية- انجليزي ");
-   }
-    $k1="Proposal_type_prfix";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-    phpgrid_error("بادئة العقود موجوده مسبقاً لايسمح بالتكرار تاكد من Type prefix");
-   }
-   $msg="Invalid query: " .$app_func->error();
-     phpgrid_error($msg);   
+    $lang_id = $app_func->GetOrderTable('lang_id', 'languages');
+    $lang_title = addslashes($data["params"]["lang_title"] ?? ''); 
+    $lang_name = addslashes($data["params"]["lang_name"] ?? $lang_title);
+    $mss = date('Y-m-d H:i:s');
+    $Is_actives = addslashes($data["params"]["Is_Actieved"] ?? 'Yes');
+    $dirction = addslashes($data["params"]["dirction"] ?? 'rtl');
+    $is_def = addslashes($data["params"]["Is_defults"] ?? 'No');
+    $notes = addslashes($data["params"]["Cat_Notes"] ?? '');
     
-}
-
-
+    $newquerys = "INSERT INTO languages (lang_id, lang_title, lang_name, dirction, Is_Actieved, Is_defults, Cat_Notes, Modify_date, User_id) VALUES 
+($lang_id, '$lang_title', '$lang_name', '$dirction', '$Is_actives', '$is_def', '$notes', '$mss', '$userid')";
+ 
+    $result = $app_func->query($newquerys);
+    if (!$result) {
+        $errs = $app_func->error();
+        phpgrid_error("خطأ أثناء إضافة اللغة: " . $errs);   
+    }
 }
 
 //---------------------Edit funcation start here----------------
 
-
-
 function update_data($data)
 {
-     global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;  
-    $User_names=$_SESSION['AppLoginName'];
-   $mss=date('Y-m-d');
-     //$data["params"]["Last_Modify"]=$mss;
-      //$data["params"]["User_name"]=$User_names;
-        $empno= $data["lang_id"];
-  $s = array();
-  foreach($data["params"] as $k=>$v)
-  {
-    
+    global $Applogins_cls, $app_func;
+    $userid = $Applogins_cls->useridx;  
+    $empno = intval($data["lang_id"] ?? ($data["id"] ?? 0));
+    $mss = date('Y-m-d H:i:s');
+    $allowed = array('lang_title', 'lang_name', 'class_name', 'dirction', 'Is_Actieved', 'Is_defults', 'Cat_Notes');
+    $s = array();
+    foreach ($data["params"] as $k => $v)
+    {
+        if (in_array($k, $allowed)) {
+            $v_esc = addslashes($v);
+            $s[] = "`$k` = '$v_esc'";
+        }
+    }
+    $s[] = "`Modify_date` = '$mss'";
+    $s[] = "`User_id` = '$userid'";
+    $s_str = implode(", ", $s);
+    $w = "lang_id = $empno";
      
-    $s[] = "$k = '$v'";
-        
-  }
-  $s = implode(",",$s);
-    $set=",Modify_date='$mss',Modify_by='$User_names',User_id='$userid'  ";
-  $s=$s." ".$set;
-  $w = "lang_id = $empno ";
-     
-$result = $app_func->query("UPDATE languages set  $s WHERE $w");
-if (!$result) {
-   
-   $errs=$app_func->error();
-   $k1="Proposal_type_name_ar_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-    phpgrid_error("لايُسمح بادخال اسم متكرر تأكد من التسمية- عربي");
-   }
-   $k1="Proposal_type_name_en_uk";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-    phpgrid_error("لايُسمح بادخال اسم متكرر تأكد من التسمية- انجليزي ");
-   }
-    $k1="Proposal_type_prfix";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-    phpgrid_error("بادئة العقود موجوده مسبقاً لايسمح بالتكرار تاكد من Type prefix");
-   }
-   $msg="Invalid query: " .$app_func->error();
-     phpgrid_error($msg);   
-    
-}
-
+    $result = $app_func->query("UPDATE languages SET $s_str WHERE $w");
+    if (!$result) {
+        $errs = $app_func->error();
+        phpgrid_error("خطأ أثناء تعديل اللغة: " . $errs);   
+    }
 }
 //---------------------filter_display funcation start here----------------
 //---------------------filter_display funcation start here----------------
@@ -394,19 +346,14 @@ $out = $grid->render("languages");
 
 
 
-$id = intval($_GET["rowid"]);
-$cid = intval($_GET["lang_id"]);
-if($cid!=""||$cid!="n")
-{
-$whr=" where lang_id=$cid ";    
-}else{
-    $whr=" ";
+$cid = isset($_REQUEST["lang_id"]) ? intval($_REQUEST["lang_id"]) : (isset($_REQUEST["rowid"]) ? intval($_REQUEST["rowid"]) : 0);
+if ($cid > 0) {
+    $whr = " where lang_id = $cid ";    
+} else {
+    $whr = " ";
 }
 
-
-
-//xxx
-$grid = new jqgrid();
+$grid = new jqgrid($db_conf);
 
 $optz["caption"] = "Dictinary";
 $optz["resizable"] = true;
@@ -577,169 +524,109 @@ function filter_display2($data)
 
 function add_data2($data)
 {
-     global $Applogins_cls,$Add_role,$cid;
-      global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;
+    global $Applogins_cls, $Add_role, $cid, $app_func;
+    $userid = $Applogins_cls->useridx;
   
-
-  
- 
-  $dict_id=$app_func->GetOrderTable('dict_id','languagedictionary');
- 
-$lang_id=$data["params"]["lang_id"];   
-$shortcode=$data["params"]["shortcode"];
-
-$content=$data["params"]["content"];     
-   
-   
-  
+    if ($Add_role) {
+        $shortcode = trim($data["params"]["shortcode"] ?? '');
+        $content = trim($data["params"]["content"] ?? '');
+        $cat_id = intval($data["params"]["cat_id"] ?? 0);
+        $is_act = addslashes($data["params"]["Is_Actieved"] ?? 'Yes');
+        $posted_lang_id = intval($data["params"]["lang_id"] ?? 0);
         
-          
-    $result=0;
-    $getlan=$app_func->query("select * from languages");
-     while ($row=$getlan->fetch_assoc()) {
-      $lang_id1=$row['lang_id'];
-$newquerys="insert into  languagedictionary (dict_id,lang_id,shortcode,content) values 
-('$dict_id','$lang_id1','$shortcode','$content')";
-$result =  $app_func->query($newquerys);
+        if (empty($shortcode)) {
+            phpgrid_error("حقل shortcode مطلوب");
+        }
+        
+        $shortcode_esc = addslashes($shortcode);
+        $content_esc = addslashes($content);
 
-
-
-     }
- 
-
-
- 
-
-
-
-if (!$result) {
-    $errs=$app_func->error(); 
-   $k1="Name_UK";
-   $chkrslt=$app_func->check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error(" عفواً يوجد عميل مضاف بنفس الاسم مسبقاً قم بتغيير الاسم");
-   }
-   
-       $errs=$app_func->error();
-   $k1="Email_UK";
-   $chkrslt=$app_func->check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error("هذا الايميل مقترن بعميل اخر لايًسمح بالتكرار ادخل ايميل جديد");
-   }
-   $errs=$app_func->error();
-   $k1="Mobile_UK";
-   $chkrslt=$app_func->check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error("رقم الجوال موجود مسبقاً لايمسح بالتكرار ادخل رقم جديد");
-   }
-   
-  
-   $errs=$app_func->error();
-
-   $msg="خطاء غير متوقع: " .$errs;
-     phpgrid_error($msg);   
-    
+        // Check if shortcode already exists
+        $chk = $app_func->query("SELECT dict_id FROM languagedictionary WHERE shortcode = '$shortcode_esc'");
+        if ($chk && $chk->num_rows > 0) {
+            phpgrid_error("رمز الكود (shortcode) مضاف مسبقاً، يرجى اختيار رمز آخر");
+        }
+        
+        $getlan = $app_func->query("SELECT * FROM languages");
+        $success = true;
+        while ($row = $getlan->fetch_assoc()) {
+            $lang_id1 = intval($row['lang_id']);
+            $curr_dict_id = $app_func->GetOrderTable('dict_id', 'languagedictionary');
+            $lang_content = ($posted_lang_id > 0 && $posted_lang_id != $lang_id1) ? $shortcode_esc : $content_esc;
+            $newquerys = "INSERT INTO languagedictionary (dict_id, lang_id, shortcode, content, cat_id, Is_Actieved) VALUES 
+('$curr_dict_id', '$lang_id1', '$shortcode_esc', '$lang_content', '$cat_id', '$is_act')";
+            $res = $app_func->query($newquerys);
+            if (!$res) {
+                $success = false;
+            }
+        }
+        if (!$success) {
+            $errs = $app_func->error();
+            phpgrid_error("حدث خطأ أثناء الإضافة: " . $errs);
+        }
+    } else {
+        phpgrid_error("ليس لديك صلاحية الإضافة");
+    }
 }
- 
-
-}
-
-
-
 
 function update_data2($data)
 { 
-    global $Applogins_cls,$Edit_role,$cid;
-       global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;
-      $User_names=$_SESSION['AppLoginName'];
-   $mss=date('Y-m-d H:i:s');
+    global $Applogins_cls, $Edit_role, $cid, $app_func;
+    $userid = $Applogins_cls->useridx;
 
-   list($dict_id,$lang_id) = explode("-",$data["pk"]);
-        $branid=$dict_id;
-        $langid=$lang_id;
-   if($Edit_role)
-   {
-  $s = array();
-    //$Is_Actievedx='Yes';
-  foreach($data["params"] as $k=>$v)
-  {
-       
-        $s[] = "$k = '$v'";
+    $pk = $data["pk"] ?? ($data["id"] ?? '');
+    $parts = explode("-", $pk);
+    $branid = intval($parts[0] ?? 0);
+    $langid = intval($parts[1] ?? 0);
     
-       
-      
-  }
-    $s = implode(",",$s);
-  $w = "dict_id=$branid and lang_id=$langid   ";
-      
-$result =  $app_func->query("UPDATE languagedictionary set  $s WHERE $w");  
-   if (!$result) {
-   
-   $errs=$app_func->error();
-   phpgrid_error($errs);
-   $k1="languagedictionary_ibfk_1";
-   $chkrslt=$app_func->check_error($errs,$k1);
-   if($chkrslt)
-   {
-    phpgrid_error("عفواً التصنيف المختار لم يعد موجوداً");
-   }
-    
-   $msg="خطاء غير متوقع: " .$errs;
-     phpgrid_error($msg);   
-    
-}
-}else{
-       phpgrid_error("ليس لديك صلاحية التعديل  ");
- 
-}
-
+    if ($Edit_role)
+    {
+        $allowed = array('shortcode', 'content', 'cat_id', 'Is_Actieved');
+        $s = array();
+        foreach ($data["params"] as $k => $v)
+        {
+            if (in_array($k, $allowed)) {
+                $v_esc = addslashes($v);
+                $s[] = "`$k` = '$v_esc'";
+            }
+        }
+        if (!empty($s) && $branid > 0) {
+            $s_str = implode(", ", $s);
+            $w = "dict_id = $branid";
+            if ($langid > 0) {
+                $w .= " AND lang_id = $langid";
+            }
+            $result = $app_func->query("UPDATE languagedictionary SET $s_str WHERE $w");
+            if (!$result) {
+                $errs = $app_func->error();
+                phpgrid_error("خطأ أثناء التعديل: " . $errs);
+            }
+        }
+    } else {
+        phpgrid_error("ليس لديك صلاحية التعديل");
+    }
 }
 
 //--------------------delete_data2 funcation-----------------------
 function delete_data2($data)
 {
-       global $Applogins_cls,$Delet_role;
-      global $app_func;
-    $userid=$Applogins_cls->useridx;
-   list($dict_id,$lang_id) = explode("-",$data["pk"]);
-        $branid=$dict_id;
-        $langid=$lang_id;
-    if($Delet_role)
-    {  
-    $User_names=$_SESSION['AppLoginName'];
-   $mss=date('Y-m-d H:i:s');
-  $city=$data["lang_id"];
-  $lang_id= $data["lang_id"];
-
-    $res=0;
-    $getlan=$app_func->query("select * from languages");
-     while ($row=$getlan->fetch_assoc()) {
-        $lang_id1=$row['lang_id'];
-  $w = "dict_id =$branid and lang_id=$lang_id1 ";
-  $res=$app_func->query("DELETE from languagedictionary WHERE $w");
-}
-    $errnos= $app_func->error();
-    if (!$res) {
-  $errs=$app_func->error();
-    if ($errnos==1451){
-    $msg="لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبه به في جداول اخرى";
-     phpgrid_error($msg); 
-   }else{
-    $msg="حدث خطاء غير متوقع رقم الخطاء:".$errnos."  msg".$errs;
-   }
-   
-        }else{
-            
+    global $Applogins_cls, $Delet_role, $app_func;
+    if ($Delet_role) {
+        $pk = $data["pk"] ?? ($data["id"] ?? '');
+        $parts = explode("-", $pk);
+        $branid = intval($parts[0] ?? 0);
+        if ($branid > 0) {
+            $q = $app_func->query("SELECT shortcode FROM languagedictionary WHERE dict_id = $branid");
+            if ($q && $row = $q->fetch_assoc()) {
+                $shortcode = addslashes($row['shortcode']);
+                $app_func->query("DELETE FROM languagedictionary WHERE shortcode = '$shortcode'");
+            } else {
+                $app_func->query("DELETE FROM languagedictionary WHERE dict_id = $branid");
+            }
         }
-  }else{
-    $msg="غفواً ليس لديك الصلاحية للحذف من هذا الجدول ";
+    } else {
+        phpgrid_error("عفواً ليس لديك صلاحية الحذف من هذا الجدول");
     }
-
 }
 
 $grid->select_command = "SELECT  *,concat(dict_id,'-',lang_id) as pk FROM  languagedictionary $whr " ;
