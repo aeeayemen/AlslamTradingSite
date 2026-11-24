@@ -235,14 +235,21 @@ function add_data($data)
     $lang_id = $app_func->GetOrderTable('lang_id', 'languages');
     $lang_title = addslashes($data["params"]["lang_title"] ?? ''); 
     $lang_name = addslashes($data["params"]["lang_name"] ?? $lang_title);
+    $class_name = addslashes($data["params"]["class_name"] ?? '');
+    if (empty($class_name)) {
+        $class_name = strtolower(substr($lang_title, 0, 2));
+    }
+    if (empty($class_name)) {
+        $class_name = 'lg' . $lang_id;
+    }
     $mss = date('Y-m-d H:i:s');
     $Is_actives = addslashes($data["params"]["Is_Actieved"] ?? 'Yes');
     $dirction = addslashes($data["params"]["dirction"] ?? 'rtl');
     $is_def = addslashes($data["params"]["Is_defults"] ?? 'No');
     $notes = addslashes($data["params"]["Cat_Notes"] ?? '');
     
-    $newquerys = "INSERT INTO languages (lang_id, lang_title, lang_name, dirction, Is_Actieved, Is_defults, Cat_Notes, Modify_date, User_id) VALUES 
-($lang_id, '$lang_title', '$lang_name', '$dirction', '$Is_actives', '$is_def', '$notes', '$mss', '$userid')";
+    $newquerys = "INSERT INTO languages (lang_id, lang_title, lang_name, class_name, dirction, Is_Actieved, Is_defults, Cat_Notes, Modify_date, User_id) VALUES 
+($lang_id, '$lang_title', '$lang_name', '$class_name', '$dirction', '$Is_actives', '$is_def', '$notes', '$mss', '$userid')";
  
     $result = $app_func->query($newquerys);
     if (!$result) {
@@ -306,22 +313,21 @@ function filter_display($data)
 
 function delete_data($data)
 {
-  global $Applogins_cls,$app_func;
-  $city=$data["lang_id"];
-  $w = "lang_id = $city";
-  $res=$app_func->query("DELETE from languages WHERE $w");
-    $errnos= $app_func->error();
+    global $Applogins_cls, $app_func;
+    $lang_id = intval($data["lang_id"] ?? ($data["id"] ?? 0));
+    if ($lang_id <= 0) {
+        phpgrid_error("معرف اللغة غير صالح");
+    }
+    if ($lang_id == 1) {
+        phpgrid_error("لا يمكن حذف اللغة الأساسية للنظام");
+    }
+    
+    $app_func->query("DELETE FROM languagedictionary WHERE lang_id = $lang_id");
+    $res = $app_func->query("DELETE FROM languages WHERE lang_id = $lang_id");
     if (!$res) {
-  $errs=$app_func->error();
-    if ($errnos==1451){
-    $msg="لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبه به في جداول اخرى";
-     phpgrid_error($msg); 
-   }else{
-    $msg="حدث خطاء غير متوقع رقم الخطاء:".$errnos."  msg".$errs;
-   }
-   
-        }
-
+        $errs = $app_func->error();
+        phpgrid_error("خطأ أثناء حذف اللغة: " . $errs);
+    }
 }
 
 function check_error($err,$searchfor)
