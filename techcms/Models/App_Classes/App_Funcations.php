@@ -7113,49 +7113,40 @@ return $partener;
     }
 
 
-       public  function SendEmailFront($Email,$subject,$message)
+       public function SendEmailFront($Email, $subject, $message)
    {
-
-
-               require('../../mail/class.phpmailer.php');
-              require_once '../../mail/class.smtp.php';
-              date_default_timezone_set('Asia/Kuwait'); 
-              $mail = new PHPMailer(); 
-              $content =$message;
-              $mail->CharSet = 'UTF-8';  
-                $mail->SMTPDebug  = 0; 
-              $mail->IsSMTP(); 
-                $NameLogin=$subject;
-              $subject='تسجيل دخول جديد';
-               $content ='لاحظنا تسجيل الدخول إلى حسابك من جهاز جديد. '.$NameLogin;
-              $mail->Host= SMTPHOST;
-              $mail->SMTPAuth = true; 
-              $mail->Port = SMTP_PORT;           
-              $mail->Username   = SMTP_USERNAME;  
-              $mail->Password   = SMTP_PASSWORD;
-              $mail->SetFrom(EMAIL_FROM_ADDR,EMAIL_FROM_NAME);
-              $mail->AddReplyTo($Email,$subject);
-              $mail->Subject = $subject;
-              $mail->MsgHTML($content);
-              $mail->AddAddress($Email,$subject); 
-                  try {
-                    $mail->addAddress($Email,$subject);
-                  } catch (Exception $e) {
-                    $MessageOutPut.= 'Invalid address skipped: ' . htmlspecialchars($Email) . '<br>';
-                    //continue;
-                } 
-               try {
-                        $mail->send();
-                        $MessageOutPut.='Message sent to :' . htmlspecialchars($subject) . ' (' . htmlspecialchars($Email) . ')<br>'; 
-                       
-                    } catch (Exception $e) {
-                        $MessageOutPut.= 'Mailer Error (' . htmlspecialchars($Email) . ') ' . $mail->ErrorInfo . '<br>'; 
-                        $mail->getSMTPInstance()->reset();
-                    }         
-      
+       try {
+           require_once __DIR__ . '/../../mail/class.phpmailer.php';
+           require_once __DIR__ . '/../../mail/class.smtp.php';
+           date_default_timezone_set('Asia/Kuwait');
+           $mail = new PHPMailer();
+           $mail->CharSet = 'UTF-8';
+           $mail->SMTPDebug = 0;
+           $mail->Timeout = 3;
+           $mail->IsSMTP();
+           $NameLogin = $subject;
+           $mailSubject = 'تسجيل دخول جديد';
+           $content = 'لاحظنا تسجيل الدخول إلى حسابك من جهاز جديد. ' . $NameLogin;
+           $mail->Host = defined('SMTPHOST') ? SMTPHOST : 'localhost';
+           $mail->SMTPAuth = true;
+           $mail->Port = defined('SMTP_PORT') ? SMTP_PORT : 587;
+           $mail->Username = defined('SMTP_USERNAME') ? SMTP_USERNAME : '';
+           $mail->Password = defined('SMTP_PASSWORD') ? SMTP_PASSWORD : '';
+           $mail->SetFrom(defined('EMAIL_FROM_ADDR') ? EMAIL_FROM_ADDR : 'info@alsalamest.com', defined('EMAIL_FROM_NAME') ? EMAIL_FROM_NAME : 'Al-Salam');
+           $mail->AddReplyTo($Email, $mailSubject);
+           $mail->Subject = $mailSubject;
+           $mail->MsgHTML($content);
+           $mail->AddAddress($Email, $NameLogin);
+           
+           ob_start();
+           $mail->send();
+           ob_end_clean();
+       } catch (\Throwable $e) {
+           if (ob_get_level() > 0) {
+               @ob_end_clean();
+           }
+       }
    }
-
-
 }
 
 ;

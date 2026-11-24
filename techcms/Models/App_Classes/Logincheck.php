@@ -1,93 +1,91 @@
 <?php
 /**
- * ßæÏ İÍÕ ÊÓÌíá ÇáÏÎæá 
- * íÚãá Úáì ÇÓÊŞÈÇá ÇáÈíÇäÇÊ 
- * ãä İæÑã ÊÓÌíá ÇáÏÎæá 
- * íŞæã ÈÇáÊÍŞŞ ãä ÈíÇäÇÊ ÇáÏÎæá 
- * æÊÓÌíá ÇáÏÎæá Çæ ÇáÎÑæÌ ÍÓÈ ÇáÈíÇäÇÊ ÇáæÇÑÏå ãä ÏÇáÉ ÇÓÊÏÚÇÁ åĞÇ Çáãáİ 
- * íÊã ÇÓÊÏÚÇÁå ãä ãáİ ÊÓÌíá ÇáÏÎæá
+ * ÙƒÙˆØ¯ ÙØ­Øµ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„
+ * ÙŠØ³ØªÙ‚Ø¨Ù„ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ù…Ù† Ù†Ù…ÙˆØ°Ø¬ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ ÙˆÙŠÙ‚ÙˆÙ… Ø¨Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù†Ù‡Ø§
+ * ÙˆÙŠØ¹ÙŠØ¯ Ø§Ù„Ù†ØªÙŠØ¬Ø© Ø¨ØªÙ†Ø³ÙŠÙ‚ JSON Ù„Ù„Ù…ØªØµÙØ­
  */
+ob_start();
 include("App_constant.php");
 include("Logins.php");
 require_once("App_Funcations.php");
-$empno=$_REQUEST["EmployeeNos"];
-$password=$_REQUEST["APasswords"];
-$remeber=$_REQUEST['remeber'];
-$Fun_cls2=new App_Funcation();
-$app_fun=new App_Funcation();
-$User_name=$empno;
 
-if($Applogins_cls->logged_in){
-$Applogins_cls->logout();
-   $_SESSION["loginattemps"]=0;  
-}else{
-  
+$empno = $_REQUEST["EmployeeNos"] ?? '';
+$password = $_REQUEST["APasswords"] ?? '';
+$remeber = $_REQUEST['remeber'] ?? '';
+$Fun_cls2 = new App_Funcation();
+$app_fun = new App_Funcation();
+$User_name = $empno;
+
+if ($Applogins_cls->logged_in) {
+    $Applogins_cls->logout();
+    $_SESSION["loginattemps"] = 0;
 }
-procLogin($User_name,$password);
- function procLogin($User,$password){
-      global $Applogins_cls;
-      if(!isset($_SESSION["loginattemps"]))
-      {
-      $_SESSION["loginattemps"]=0;  
-      }else{
-        $_SESSION["loginattemps"]+=1;
-      }
-      if($_SESSION["loginattemps"]>3)
-      {
-         $Applogins_cls->block_user($User);
-          $_SESSION["loginattemps"]=0;  
-         $resultadmin=array('status'=>5,'url'=>$Applogins_cls->referrer);
 
-       	echo json_encode($resultadmin);
-        
-      }else{
-        
-        
-    $app_fun=new App_Funcation();
-      /* Login attempt */
-      $logedcheck = $Applogins_cls->login($User, $password);
-      $resultadmin=array();
-      /* Login successful */
-     if($logedcheck){
-       $errsarry=$Applogins_cls->errorarray;
-        $erno=$errsarry["errono"];
-          $_SESSION["loginattemps"]=0;
+procLogin($User_name, $password);
 
-          $rowComun=$app_fun->getDetailscampany(1,1);
-          $Email =$rowComun['EmailNotifcation'];
-          $subject =$Applogins_cls->Shown_Name;
-          $message ='áÇÍÙäÇ ÊÓÌíá ÇáÏÎæá Åáì ÍÓÇÈß ãä ÌåÇÒ ÌÏíÏ. åá åĞÇ ÇäÊ¿';
-          if ($Email!='') {
-               $app_fun->SendEmailFront($Email,$subject,$message);
-          }
-        
-        $resultadmin=array('status'=>$erno,'url'=>$Applogins_cls->referrer);
-       	echo json_encode($resultadmin);
-        
-      }
-      /* Login failed */
-      else{
-        $errsarry=$Applogins_cls->errorarray;
-        $erno=$errsarry["errono"];
-        $resultadmin=array('status'=>$erno,'url'=>$Applogins_cls->referrer);
-       	echo json_encode($resultadmin);
-        // header("Location: ".$adlogins->referrer);
-      }
+function procLogin($User, $password) {
+    global $Applogins_cls;
+    if (!isset($_SESSION["loginattemps"])) {
+        $_SESSION["loginattemps"] = 0;
+    } else {
+        $_SESSION["loginattemps"] += 1;
+    }
+    
+    if ($_SESSION["loginattemps"] > 5) {
+        $Applogins_cls->block_user($User);
+        $_SESSION["loginattemps"] = 0;
+        $resultadmin = array('status' => 5, 'url' => $Applogins_cls->referrer);
+
+        while (ob_get_level() > 0) {
+            ob_end_clean();
         }
-   }
- //  if($Applogins_cls->logged_in){
-   //$Applogins_cls->logout();
-//echo "logedin";
-//}else{
-// echo "Not logedin";  
-//}
-//echo "$User_name";
-//echo count($_SESSION['error_array']);
-//print_r($Applogins_cls->errorarray);
-//  //$resultadmin=array('issucessdb'=>'YES','campinsrtstatus' =>'<strong> Êã ÇÖÇİÉ ãÓÊÎÏã ÌÏíÏ ÈäÌÇÍ</strong>');
-//    //   	echo json_encode($resultadmin);
-//
-?>
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($resultadmin);
+        exit;
+    } else {
+        $app_fun = new App_Funcation();
+        /* Login attempt */
+        $logedcheck = $Applogins_cls->login($User, $password);
+        $resultadmin = array();
+        
+        /* Login successful */
+        if ($logedcheck) {
+            $errsarry = $Applogins_cls->errorarray;
+            $erno = $errsarry["errono"];
+            $_SESSION["loginattemps"] = 0;
 
+            try {
+                $rowComun = $app_fun->getDetailscampany(1, 1);
+                $Email = $rowComun['EmailNotifcation'] ?? '';
+                $subject = $Applogins_cls->Shown_Name;
+                $message = 'Ù„Ø§Ø­Ø¸Ù†Ø§ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¥Ù„Ù‰ Ø­Ø³Ø§Ø¨Ùƒ Ù…Ù† Ø¬Ù‡Ø§Ø² Ø¬Ø¯ÙŠØ¯. Ù‡Ù„ Ù‡Ø°Ø§ Ø£Ù†ØªØŸ';
+                if (!empty($Email)) {
+                    ob_start();
+                    $app_fun->SendEmailFront($Email, $subject, $message);
+                    ob_end_clean();
+                }
+            } catch (\Throwable $e) {
+                // Silently ignore mail failures so login is never blocked
+            }
 
-
+            $resultadmin = array('status' => $erno, 'url' => $Applogins_cls->referrer);
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($resultadmin);
+            exit;
+        } else {
+            /* Login failed */
+            $errsarry = $Applogins_cls->errorarray;
+            $erno = $errsarry["errono"];
+            $resultadmin = array('status' => $erno, 'url' => $Applogins_cls->referrer);
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($resultadmin);
+            exit;
+        }
+    }
+}
