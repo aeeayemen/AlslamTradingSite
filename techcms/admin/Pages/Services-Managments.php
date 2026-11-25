@@ -315,150 +315,71 @@ $grid->set_events($e);
 
 function add_data($data)
 {
-    global $app_func;
-     global $Applogins_cls;
-    $userid=$Applogins_cls->useridx;  
-   $service_id= 1;
-  $result=$app_func->query("SELECT MAX(service_id)+1 AS NB FROM  services");
- while ($row = $result->fetch_assoc()) {
-    if($row["NB"]>0)
-    {
-   $service_id= $row["NB"];     
-    }else{
-        $service_id= 1;
-    }
+    global $app_func, $Applogins_cls;
+    $userid = intval($Applogins_cls->useridx ?? 1);  
+    $service_id = 1;
+    $result = $app_func->query("SELECT MAX(service_id)+1 AS NB FROM services");
+    if ($result && $row = $result->fetch_assoc()) {
+        if ($row["NB"] > 0) {
+            $service_id = $row["NB"];     
+        }
     }  
+
+    $service_title = addslashes($data["params"]["service_title"] ?? '');
+    $content = addslashes($data["params"]["content"] ?? '');
+    $Is_Actieved = addslashes($data["params"]["Is_Actieved"] ?? 'Yes');
+    $short_desc = addslashes($data["params"]["short_desc"] ?? '');
+    $User_names = addslashes($_SESSION['AppLoginName'] ?? 'admin');
+    $mss = date('Y-m-d H:i:s');
+    $creating_date = $mss;
+    $Image = addslashes($data["params"]["Image"] ?? '');  
  
-
-$lang_id=$data["params"]["lang_id"];
- 
-$order_id=$data["params"]["order_id"]; 
-$service_title=str_replace("'","",$data["params"]["service_title"]);
-$content=str_replace("'","",$data["params"]["content"]);
-
-$keyword=str_replace("'","",$data["params"]["keyword"]);
-$seo_description=str_replace("'","",$data["params"]["seo_description"]);  
-$Is_Actieved=$data["params"]["Is_Actieved"];
-$short_desc=$data["params"]["short_desc"];
-$User_names=$_SESSION['AppLoginName'];
-$mss=date('Y-m-d');
-$creating_date=$mss;
- $Image = $data["params"]["Image"];  
- 
-    $result=0;
- 
-
-$newquerys="insert into  services (service_id,creating_date,Is_Actieved,Image,service_title,content,short_desc,created_by,User_id) values 
-($service_id,'$creating_date','$Is_Actieved','$Image','$service_title','$content','$short_desc','$User_names','$userid')";
-       $result = $app_func->query($newquerys);
-
- 
-if (!$result) {
-    $errs=$app_func->error();
-   $k1="Title_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error(" عفواً يوجد عميل مضاف بنفس الاسم مسبقاً قم بتغيير الاسم");
-   }
-   
-       $errs=$app_func->error();
-   $k1="keyword_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error("هذا الايميل مقترن بعميل اخر لايًسمح بالتكرار ادخل ايميل جديد");
-   }
-   $errs=$app_func->error();
-   $k1="seo_description_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error("رقم الجوال موجود مسبقاً لايمسح بالتكرار ادخل رقم جديد");
-   }
-   
-  
-   $errs=$app_func->error();
-
-   $msg="خطاء غير متوقع: " .$errs;
-     phpgrid_error($msg);   
-    
-}
-
-
+    $newquerys = "insert into services (service_id, creating_date, Is_Actieved, Image, service_title, content, short_desc, created_by, User_id) values 
+($service_id, '$creating_date', '$Is_Actieved', '$Image', '$service_title', '$content', '$short_desc', '$User_names', '$userid')";
+    try {
+        $result = $app_func->query($newquerys);
+        if (!$result) {
+            phpgrid_error("خطاء غير متوقع: " . $app_func->error());   
+        }
+    } catch (\Throwable $e) {
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());   
+    }
 }
 
 //---------------------Edit funcation start here----------------
 
 function update_data($data)
 {
-    global $app_func;
-    global $Applogins_cls;
-    $userid=$Applogins_cls->useridx;  
-    $User_names=$_SESSION['AppLoginName'];
-   $mss=date('Y-m-d'); 
+    global $app_func, $Applogins_cls;
+    $userid = intval($Applogins_cls->useridx ?? 1);  
+    $User_names = addslashes($_SESSION['AppLoginName'] ?? 'admin');
+    $mss = date('Y-m-d H:i:s'); 
 
-     $empno=$data["service_id"];
-  $s = array();
-  foreach($data["params"] as $k=>$v)
-  {
-     
-    if ($k!="getimage"  ) {
-       $s[] = "$k = '$v'";  
+    $empno = intval($data["service_id"] ?? ($data["id"] ?? 0));
+    $allowed = array('service_title', 'short_desc', 'content', 'Image', 'Is_Actieved');
+    $s = array();
+    foreach ($data["params"] as $k => $v)
+    {
+        if (in_array($k, $allowed)) {
+            $vv = addslashes($v);
+            $s[] = "`$k` = '$vv'";  
+        }
     }
-        
-  }
  
-  $s = implode(",",$s);
-    $set=",Modify_date='$mss',created_by='$User_names',User_id='$userid'";
-  $s=$s." ".$set; 
-  $w = "service_id =$empno";
- // phpgrid_error("UPDATE services set  $s WHERE $w");
+    $s[] = "`Modify_date` = '$mss'";
+    $s[] = "`created_by` = '$User_names'";
+    $s[] = "`User_id` = '$userid'";
+    $s_str = implode(", ", $s); 
+    $w = "service_id = $empno";
   
-$result = $app_func->query("UPDATE services set  $s WHERE $w");
-if (!$result) {
-    $errs=$app_func->error();
-   $k1="Title_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error(" يوجد عميل مضاف مسبقاً بهذا الاسم لايُسمح بالتكرار  تاكد من الاسم العربي");
-   }
-     $errs=$app_func->error();
-   $k1="cmpny_name_en_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error(" يوجد عميل مضاف مسبقاً بهذا الاسم لايُسمح بالتكرار  تاكد من الاسم الانجليزي");
-   }
-       $errs=$app_func->error();
-   $k1="keyword_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error("هذا الايميل مقترن بعميل اخر لايًسمح بالتكرار ادخل ايميل جديد");
-   }
-   $errs=$app_func->error();
-   $k1="seo_description_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error("رقم الجوال موجود مسبقاً لايمسح بالتكرار ادخل رقم جديد");
-   }
-    $errs=$app_func->error();
-   $k1="keyword";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error("رقم الفاكس موجود مسبقاً لايمسح بالتكرار ادخل رقم جديد");
-   }
-  
-   $errs=$app_func->error();
-
-   $msg="خطاء غير متوقع: " .$errs;
-     phpgrid_error($msg);   
-    
-}
+    try {
+        $result = $app_func->query("UPDATE services SET $s_str WHERE $w");
+        if (!$result) {
+            phpgrid_error("خطاء غير متوقع: " . $app_func->error());   
+        }
+    } catch (\Throwable $e) {
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());   
+    }
 }
 
 //---------------------filter_display funcation start here----------------

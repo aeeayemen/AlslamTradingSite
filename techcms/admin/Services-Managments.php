@@ -86,6 +86,21 @@ require_once "../Models/App_Parts/inerr-header.php";
        QuickSidebar.init(); // init quick sidebar
        Demo.init(); // init demo features 
     });
+
+    $('.iframe-btn').fancybox({ 
+        'width'     : 900,
+        'height'    : 600,
+        'type'      : 'iframe',
+        'autoScale' : false
+    });
+
+    function edit_as_custom(o)
+    {
+        setTimeout(function(){
+            jQuery(o).parent().append('<a class="btn iframe-btn" type="button" href="<?php echo FILEMANAGERPATH; ?>/dialog.php?type=1&editor=mce_0&field_id=Image&multiple=0">اختيار صورة</a>');
+            jQuery(o).css('display','none');
+        }, 100);
+    }
   </script>
 <!-- END JAVASCRIPTS -->
 </body>
