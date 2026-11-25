@@ -504,10 +504,10 @@ function add_data($data)
     $Sitem_ID = $app_func->GetOrderTable('Sitem_ID', 'sliders_items');
     $lang_id = intval($data["params"]["lang_id"] ?? 1);
     $titless = addslashes($data["params"]["titles"] ?? '');
-    $text1 = str_replace("'", "", $data["params"]["text1"] ?? '');
-    $text2 = str_replace("'", "", $data["params"]["text2"] ?? '');   
-    $text3 = str_replace("'", "", $data["params"]["text3"] ?? '');
-    $text4 = str_replace("'", "", $data["params"]["text4"] ?? '');   
+    $text1 = addslashes($data["params"]["text1"] ?? '');
+    $text2 = addslashes($data["params"]["text2"] ?? '');   
+    $text3 = addslashes($data["params"]["text3"] ?? '');
+    $text4 = addslashes($data["params"]["text4"] ?? '');   
       
     $mss = date('Y-m-d H:i:s');
     $Is_actives = addslashes($data["params"]["Is_Actived"] ?? 'Yes');
@@ -518,14 +518,18 @@ function add_data($data)
     $img4 = addslashes($data["params"]["img4"] ?? '');
     $Modals = addslashes($data["params"]["Modals"] ?? '');
     $sorder_ids = intval($data["params"]["sorder_id"] ?? 1);
-    $result=0;
-    $getlan=$app_func->query("select * from languages");
-     while ($row=$getlan->fetch_assoc()) {
-      $lang_id1=$row['lang_id'];
-   $newquerys="insert into sliders_items (Sitem_ID,lang_id,titles, image,text1, text2,text3,text4,img1,img2,img3,img4,Modals, Is_Actived,sorder_id,created_by,User_id) values 
+    $result = 0;
+    try {
+        $getlan = $app_func->query("select * from languages");
+        while ($row = $getlan->fetch_assoc()) {
+            $lang_id1 = $row['lang_id'];
+            $newquerys = "insert into sliders_items (Sitem_ID,lang_id,titles, image,text1, text2,text3,text4,img1,img2,img3,img4,Modals, Is_Actived,sorder_id,created_by,User_id) values 
 ('$Sitem_ID','$lang_id1','$titless','$imagepath','$text1','$text2','$text3','$text4','$img1','$img2','$img3','$img4','$Modals','$Is_actives','$sorder_ids','$userid','$userid')";
-       $result = $app_func->query($newquerys);
-       } 
+            $result = $app_func->query($newquerys);
+        }
+    } catch (\Throwable $e) {
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());
+    } 
      
  
 if (!$result) {
@@ -658,27 +662,19 @@ function filter_display($data)
 
 function delete_data($data)
 {
- global $Applogins_cls,$app_func;
-  list($lang_id,$Sitem_ID) = explode("-",$data["pk"]);
-
-    $langid=$lang_id;
-    $empno=$Sitem_ID;
-  $res=0;
-  $getlan=$app_func->query("select * from languages");
-     while ($row=$getlan->fetch_assoc()) {
-        $lang_id1=$row['lang_id'];
-        $w ="Sitem_ID = $empno and lang_id='$lang_id1' ";
-        $res=$app_func->query("DELETE from sliders_items WHERE $w");
-    }
- 
-    if (!$res) {
-      $errs=$app_func->error();
-        if ($errnos==1451){
-        $msg="لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبه به في جداول اخرى";
-         phpgrid_error($msg); 
-       }else{
-        $msg="حدث خطاء غير متوقع رقم الخطاء:".$errnos."  msg".$errs;
-       }
+    global $Applogins_cls, $app_func;
+    $pk = $data["pk"] ?? ($data["id"] ?? '');
+    $parts = explode("-", $pk);
+    $empno = intval($parts[1] ?? ($parts[0] ?? 0));
+    if ($empno > 0) {
+        try {
+            $res = $app_func->query("DELETE from sliders_items WHERE Sitem_ID = $empno");
+            if (!$res) {
+                phpgrid_error("خطاء غير متوقع: " . $app_func->error());
+            }
+        } catch (\Throwable $e) {
+            phpgrid_error("خطاء غير متوقع: " . $e->getMessage());
+        }
     }
 }
 
