@@ -245,201 +245,114 @@ $grid->set_events($e);
  
 function add_data($data)
 {
-  global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;
-      $count_id=$app_func->GetOrderTable('count_id','counter');  
- 
-$order_id=$data["params"]["order_id"]; 
+    global $Applogins_cls, $app_func;
+    $userid = intval($Applogins_cls->useridx ?? 1);
+    $count_id = $app_func->GetOrderTable('count_id', 'counter');
 
-$titleCount=str_replace("'","",$data["params"]["titleCount"]);
-$number=str_replace("'","",$data["params"]["number"]);
-$type=$data["params"]["type"]; 
+    $order_id = !empty($data["params"]["order_id"]) ? intval($data["params"]["order_id"]) : 1;
+    $titleCount = addslashes($data["params"]["titleCount"] ?? '');
+    $number = intval($data["params"]["number"] ?? 0);
+    $activity_id = intval($data["params"]["activity_id"] ?? 0);
+    $sector_id = intval($data["params"]["sector_id"] ?? 0);
+    $User_names = addslashes($_SESSION['AppLoginName'] ?? 'admin');
 
-$path=$data["params"]["logo"];
-$activity_id=$data["params"]["activity_id"];
-$User_names=$_SESSION['AppLoginName'];
-$mss=date('Y-m-d');
-$creating_date=$mss;
+    $result = 0;
+    try {
+        $getlan = $app_func->query("select * from languages");
+        while ($row = $getlan->fetch_assoc()) {
+            $lang_id1 = intval($row['lang_id']);
+            $newquerys = "insert into counter (`count_id`, `lang_id`, `sector_id`, `activity_id`, `titleCount`, `number`, `order_id`, `created_by`) values 
+('$count_id', '$lang_id1', '$sector_id', '$activity_id', '$titleCount', '$number', '$order_id', '$User_names')";
+            $result = $app_func->query($newquerys);
+        }
+    } catch (\Throwable $e) {
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());
+    }
 
-
-    $result=0;
-$getlan=$app_func->query("select * from languages");
-     while ($row=$getlan->fetch_assoc()) {
-      $lang_id1=$row['lang_id'];
-    $newquerys="insert into counter (`count_id`,`lang_id`, `titleCount`,`number`,`activity_id`,`order_id`) values 
-    ('$count_id','$lang_id1','$titleCount','$number','$activity_id','$order_id')";
-     $result = $app_func->query($newquerys);
-   }
-   
-
- 
-if (!$result) {
-    $errs=$app_func->error();
-   $k1="Title_UK";
-
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error(" عفواً يوجد عميل مضاف بنفس الاسم مسبقاً قم بتغيير الاسم");
-   }
-   
-       $errs=$app_func->error();
-   $k1="keyword_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error("هذا الايميل مقترن بعميل اخر لايًسمح بالتكرار ادخل ايميل جديد");
-   }
-   $errs=$app_func->error();
-   $k1="published_state_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error("رقم الجوال موجود مسبقاً لايمسح بالتكرار ادخل رقم جديد");
-   }
-   
-  
-   $errs=$app_func->error();
-
-   $msg="خطاء غير متوقع: " .$errs;
-     phpgrid_error($msg);   
-    
+    if (!$result) {
+        $errs = $app_func->error();
+        $msg = "خطاء غير متوقع: " . $errs;
+        phpgrid_error($msg);
+    }
 }
 
-
-}
 //---------------------Edit funcation start here----------------
 
 function update_data($data)
 {
-       global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;
-    
-    list($lang_id,$calleage_id) = explode("-",$data["pk"]);
+    global $Applogins_cls, $app_func;
+    $userid = intval($Applogins_cls->useridx ?? 1);
+    $User_names = addslashes($_SESSION['AppLoginName'] ?? 'admin');
+    $mss = date('Y-m-d H:i:s');
 
-    $langid=$lang_id;
-    $empno=$calleage_id;
-
-
-    $s = array();
-    foreach($data["params"] as $k=>$v)
-  {
-    
-     
-    if ($k!="getlogo" && $k!="sector_id") {
-       $vv=str_replace("'","",$v);
-       $s[] = "$k = '$vv'";   
+    $pk = $data["pk"] ?? ($data["id"] ?? '');
+    $parts = explode("-", $pk);
+    $langid = intval($parts[0] ?? 0);
+    $empno = intval($parts[1] ?? 0);
+    if ($empno <= 0) {
+        $empno = intval($data["count_id"] ?? 0);
     }
-        
-  }
-    $s = implode(",",$s);
-    
-    $s=$s." ".$set;
 
-    $w = "count_id=$empno and lang_id='$langid' ";
-    $result = $app_func->query("UPDATE counter set  $s WHERE $w");
-// phpgrid_error($result);
-    if (!$result) {
-        $errs=$app_func->error();
-        $msg="خطاء غير متوقع: " .$errs;
-        phpgrid_error($msg);
+    $allowed = array('titleCount', 'number', 'activity_id', 'sector_id', 'order_id', 'font_icon_id');
+    $s = array();
+    foreach ($data["params"] as $k => $v) {
+        if (in_array($k, $allowed)) {
+            $vv = in_array($k, array('number', 'activity_id', 'sector_id', 'order_id')) ? intval($v) : addslashes($v);
+            $s[] = "`$k` = '$vv'";
+        }
+    }
+    $s[] = "`created_by` = '$User_names'";
+    $s[] = "`Modify_date` = '$mss'";
+    $s_str = implode(", ", $s);
 
+    $w = "count_id = $empno";
+    if ($langid > 0) {
+        $w .= " AND lang_id = '$langid'";
+    }
+
+    try {
+        $result = $app_func->query("UPDATE counter SET $s_str WHERE $w");
+        if (!$result) {
+            phpgrid_error("خطاء غير متوقع: " . $app_func->error());
+        }
+    } catch (\Throwable $e) {
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());
     }
 }
-
-// //---------------------Edit funcation start here----------------
-
-// function update_data($data)
-// {
-//     global $Applogins_cls,$app_func;
-//     $userid=$Applogins_cls->useridx;  
-//     $User_names=$_SESSION['AppLoginName'];
-//    $mss=date('Y-m-d');
-
-     
-  
-//         $empno=$data["count_id"];
-  
-     
-//   $s = array();
-//   foreach($data["params"] as $k=>$v)
-//   {
-    
-     
-//     if ($k!="getlogo") {
-//        $vv=str_replace("'","",$v);
-//        $s[] = "$k = '$vv'";   
-//     }
-        
-//   }
-//   $s = implode(",",$s);
-//   $s=$s." ".$set; 
-   
-//   $w = "count_id=$empno";
-// $result = $app_func->query("UPDATE counter set  $s WHERE $w");
-// // phpgrid_error($result); 
-// if (!$result) { 
-//    $errs=$app_func->error(); 
-//    $msg="خطاء غير متوقع: " .$errs;
-//      phpgrid_error($msg);   
-    
-// }
-// }
 
 //---------------------filter_display funcation start here----------------
 function filter_display($data) 
 { 
-    
     foreach($data["params"] as &$d) 
     { 
          $count_id=$d["count_id"];
-        
-           
-         
-        
-
-            
-        
-        
-        
     } 
 } 
-
 
 //---------------------delete_data funcation start here----------------
 
 function delete_data($data)
 { 
-    global $Applogins_cls,$app_func;
-    list($lang_id,$count_id) = explode("-",$data["pk"]);
-
-    $langid=$lang_id;
-    $empno=$count_id;
-
-    $res=0;
-    $getlan=$app_func->query("select * from languages");
-     while ($row=$getlan->fetch_assoc()) {
-        $lang_id1=$row['lang_id'];
-        $w = "count_id=$empno ";
-        $res=$app_func->query("DELETE from counter WHERE $w");
+    global $Applogins_cls, $app_func;
+    $pk = $data["pk"] ?? ($data["id"] ?? '');
+    $parts = explode("-", $pk);
+    $empno = intval($parts[1] ?? 0);
+    if ($empno <= 0) {
+        $empno = intval($data["count_id"] ?? 0);
     }
-    
-    if (!$res) {
-        $errs=$app_func->error();
-        if ($errnos==1451){
-            $msg="لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبه به في جداول اخرى";
-            phpgrid_error($msg);
-        }else{
-            $msg="حدث خطاء غير متوقع رقم الخطاء:".$errnos."  msg".$errs;
+
+    try {
+        $res = $app_func->query("DELETE from counter WHERE count_id = $empno");
+        if (!$res) {
+            phpgrid_error("خطاء غير متوقع: " . $app_func->error());
         }
-
+    } catch (\Throwable $e) {
+        if ($app_func->errno() == 1451) {
+            phpgrid_error("لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبطة به في جداول أخرى");
+        } else {
+            phpgrid_error("حدث خطاء غير متوقع: " . $e->getMessage());
+        }
     }
-
-    global $Applogins_cls,$app_func;  
-    $empno=$data["count_id"];
-
-  $res=0;
-
 }
 
 function check_error($err,$searchfor)
