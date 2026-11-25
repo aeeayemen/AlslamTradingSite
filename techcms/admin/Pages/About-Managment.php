@@ -441,100 +441,84 @@ $grid->set_events($e);
 
 function add_data($data)
 {
-       global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;
+    global $Applogins_cls, $app_func;
+    $userid = intval($Applogins_cls->useridx ?? 1);
     
-  $uininfo_id=$app_func->GetOrderTable('uininfo_id','uin_info');
-    $lang_id=$data["params"]["lang_id"];
-    $order_id=$data["params"]["order_id"];
-    $PostionAbout=$data["params"]["PostionAbout"];
-    $TypeAbout=$data["params"]["TypeAbout"];
-    $Title=str_replace("'","",$data["params"]["Title"]);
-    $content=str_replace("'","",$data["params"]["content"]);
-    $Is_Actieved=$data["params"]["Is_Actieved"];
-    $short_desc=$data["params"]["short_desc"];
-    $Is_visible = $data["params"]["Is_visible"];
+    $uininfo_id = $app_func->GetOrderTable('uininfo_id', 'uin_info');
+    $lang_id = intval($data["params"]["lang_id"] ?? 1);
+    $order_id = intval($data["params"]["order_id"] ?? 1);
+    $PostionAbout = addslashes($data["params"]["PostionAbout"] ?? '');
+    $TypeAbout = addslashes($data["params"]["TypeAbout"] ?? '');
+    $Title = addslashes($data["params"]["Title"] ?? '');
+    $content = addslashes($data["params"]["content"] ?? '');
+    $Is_Actieved = addslashes($data["params"]["Is_Actieved"] ?? 'Yes');
+    $short_desc = addslashes($data["params"]["short_desc"] ?? '');
+    $Is_visible = addslashes($data["params"]["Is_visible"] ?? 'Yes');
 
-    $User_names=$_SESSION['AppLoginName'];
-    $mss=date('Y-m-d');
-    $creating_date=$mss;
-    $Path = $data["params"]["Image"];
-        $PdfFile = $data["params"]["PdfFile"];
-    $location=$data["params"]["location"];
-    $links=$data["params"]["links"];
+    $User_names = addslashes($_SESSION['AppLoginName'] ?? 'admin');
+    $mss = date('Y-m-d H:i:s');
+    $creating_date = $mss;
+    $Path = addslashes($data["params"]["Image"] ?? '');
+    $PdfFile = addslashes($data["params"]["PdfFile"] ?? '');
+    $location = addslashes($data["params"]["location"] ?? '');
+    $links = addslashes($data["params"]["links"] ?? '');
   
-       
-    $result=0;
-    $getlan=$app_func->query("select * from languages");
-     while ($row=$getlan->fetch_assoc()) {
-      $lang_id1=$row['lang_id'];
-    
-$newquerys="insert into uin_info (`uininfo_id`, `lang_id`, `Title`,`short_desc`,`PostionAbout`,`TypeAbout`,`content`, `Image`, `PdfFile`,`location`,`links`, `order_id`,`Is_Actieved`,`Is_visible`,`created_by`, `creating_date`, `User_id`) values 
+    $result = 0;
+    try {
+        $getlan = $app_func->query("select * from languages");
+        while ($row = $getlan->fetch_assoc()) {
+            $lang_id1 = $row['lang_id'];
+            $newquerys = "insert into uin_info (`uininfo_id`, `lang_id`, `Title`,`short_desc`,`PostionAbout`,`TypeAbout`,`content`, `Image`, `PdfFile`,`location`,`links`, `order_id`,`Is_Actieved`,`Is_visible`,`created_by`, `creating_date`, `User_id`) values 
 ('$uininfo_id','$lang_id1','$Title','$short_desc','$PostionAbout','$TypeAbout','$content','$Path','$PdfFile','$location','$links','$order_id','$Is_Actieved','$Is_visible','$User_names','$creating_date','$userid')";
-         $result = $app_func->query($newquerys);
- 
-}
-
-    if (!$result) {
-        $errs=$app_func->error();
-       
-        $errs=$app_func->error();
-        $k1="published_state_UK";
-        $chkrslt=check_error($errs,$k1);
-        if($chkrslt)
-        {
-            phpgrid_error("رقم الجوال موجود مسبقاً لايمسح بالتكرار ادخل رقم جديد");
+            $result = $app_func->query($newquerys);
         }
-
-
-        $errs=$app_func->error();
-
-        $msg="خطاء غير متوقع: " .$errs;
-        phpgrid_error($msg);
-
+    } catch (\Throwable $e) {
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());
     }
 
-
+    if (!$result) {
+        $errs = $app_func->error();
+        $msg = "خطاء غير متوقع: " . $errs;
+        phpgrid_error($msg);
+    }
 }
 
 //---------------------Edit funcation start here----------------
 
 function update_data($data)
 {
-       global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;
-    $User_names=$_SESSION['AppLoginName'];
-    $mss=date('Y-m-d');
+    global $Applogins_cls, $app_func;
+    $userid = intval($Applogins_cls->useridx ?? 1);
+    $User_names = addslashes($_SESSION['AppLoginName'] ?? 'admin');
+    $mss = date('Y-m-d H:i:s');
 
-    list($lang_id,$uininfo_id) = explode("-",$data["pk"]);
+    $pk = $data["pk"] ?? ($data["id"] ?? '');
+    $parts = explode("-", $pk);
+    $langid = intval($parts[0] ?? 0);
+    $empno = intval($parts[1] ?? 0);
 
-    $langid=$lang_id;
-    $empno=$uininfo_id;
-
-
+    $allowed = array('PostionAbout', 'TypeAbout', 'Title', 'short_desc', 'content', 'location', 'uploadvedio', 'links', 'Image', 'PdfFile', 'order_id', 'Is_visible', 'Is_Actieved');
     $s = array();
-    foreach($data["params"] as $k=>$v)
+    foreach ($data["params"] as $k => $v)
     {
-
-
-        if ($k!="getimage" && $k!="uploadvedio" && $k!="getPdf") {
-            $vv=str_replace("'","",$v);
-            $s[] = "$k = '$vv'";
+        if (in_array($k, $allowed)) {
+            $vv = ($k === 'order_id') ? intval($v) : addslashes($v);
+            $s[] = "`$k` = '$vv'";
         }
-
     }
-    $s = implode(",",$s);
-    $set=",Modify_date='$mss',created_by='$User_names',User_id='$userid' ";
-    $s=$s." ".$set;
+    $s[] = "`Modify_date` = '$mss'";
+    $s[] = "`created_by` = '$User_names'";
+    $s[] = "`User_id` = '$userid'";
+    $s_str = implode(", ", $s);
 
-    $w = "uininfo_id=$empno and lang_id='$langid' ";
-    $result = $app_func->query("UPDATE uin_info set  $s WHERE $w");
-// phpgrid_error($result);
-    if (!$result) {
-        $errs=$app_func->error();
-        $msg="خطاء غير متوقع: " .$errs;
-        phpgrid_error($msg);
-
+    $w = "uininfo_id = $empno AND lang_id = '$langid'";
+    try {
+        $result = $app_func->query("UPDATE uin_info SET $s_str WHERE $w");
+        if (!$result) {
+            phpgrid_error("خطاء غير متوقع: " . $app_func->error());
+        }
+    } catch (\Throwable $e) {
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());
     }
 }
 
