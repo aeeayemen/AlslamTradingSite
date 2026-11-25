@@ -412,101 +412,84 @@ $grid->set_events($e);
 
 function add_data($data)
 {
-    global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;
+    global $Applogins_cls, $app_func;
+    $userid = intval($Applogins_cls->useridx ?? 1);
 
-    $why_us_Id=$app_func->GetOrderTable('why_us_Id','why_us');
-    $lang_id=$data["params"]["lang_id"];
-    $sector_id=$data["params"]["sector_id"];
-    $url=$data["params"]["url"];
-    $order_id=$data["params"]["order_id"];
-    $Is_Actieved=$data["params"]["Is_Actieved"];
+    $why_us_Id = $app_func->GetOrderTable('why_us_Id', 'why_us');
+    $lang_id = intval($data["params"]["lang_id"] ?? 1);
+    $sector_id = intval($data["params"]["sector_id"] ?? 1);
+    $url = addslashes($data["params"]["url"] ?? '');
+    $order_id = intval($data["params"]["order_id"] ?? 1);
+    $Is_Actieved = addslashes($data["params"]["Is_Actieved"] ?? 'Yes');
 
-    $User_names=$_SESSION['AppLoginName'];
-    $mss=date('Y-m-d');
-    $creating_date=$mss;
-    $Name_Partenr=str_replace("'","",$data["params"]["Name_Partenr"]);
-    $why_us_content=str_replace("'","",$data["params"]["why_us_content"]);
-    $Pathwhy_us = $data["params"]["logo"];
-    $activity_id = $data["params"]["activity_id"];
-    $point1 = $data["params"]["point1"];
-    $point2 = $data["params"]["point2"];
-    $point3 = $data["params"]["point3"];
-    $point4 = $data["params"]["point4"];
-    $point5 = $data["params"]["point5"];
+    $User_names = addslashes($_SESSION['AppLoginName'] ?? 'admin');
+    $mss = date('Y-m-d H:i:s');
+    $creating_date = $mss;
+    $Name_Partenr = addslashes($data["params"]["Name_Partenr"] ?? '');
+    $Pathwhy_us = addslashes($data["params"]["logo"] ?? '');
+    $activity_id = intval($data["params"]["activity_id"] ?? 1);
+    $point1 = addslashes($data["params"]["point1"] ?? '');
+    $point2 = addslashes($data["params"]["point2"] ?? '');
+    $point3 = addslashes($data["params"]["point3"] ?? '');
+    $point4 = addslashes($data["params"]["point4"] ?? '');
+    $point5 = addslashes($data["params"]["point5"] ?? '');
 
-
-    $result=0;
-    $getlan=$app_func->query("select * from languages");
-    while ($row=$getlan->fetch_assoc()) {
-        $lang_id1=$row['lang_id'];
-
-        $newquerys="insert into why_us (`why_us_Id`,`activity_id`, `lang_id`, `Name_Partenr`,`point1`,`point2`,`point3`,`point4`,`point5`,`url`, `logo`,  `order_id`,`Is_Actieved`,`created_by`, `creating_date`, `User_id`) values 
-('$why_us_Id','$activity_id','$lang_id1','$Name_Partenr','$point1','$point2','$point3','$point4','$point5','$url','$Pathwhy_us','$order_id','$Is_Actieved','$User_names','$creating_date','$userid')";
-        $result = $app_func->query($newquerys);
-
+    $result = 0;
+    try {
+        $getlan = $app_func->query("select * from languages");
+        while ($row = $getlan->fetch_assoc()) {
+            $lang_id1 = $row['lang_id'];
+            $newquerys = "insert into why_us (`why_us_Id`,`sector_id`,`activity_id`, `lang_id`, `Name_Partenr`,`point1`,`point2`,`point3`,`point4`,`point5`,`url`, `logo`,  `order_id`,`Is_Actieved`,`created_by`, `creating_date`, `User_id`) values 
+('$why_us_Id','$sector_id','$activity_id','$lang_id1','$Name_Partenr','$point1','$point2','$point3','$point4','$point5','$url','$Pathwhy_us','$order_id','$Is_Actieved','$User_names','$creating_date','$userid')";
+            $result = $app_func->query($newquerys);
+        }
+    } catch (\Throwable $e) {
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());
     }
 
     if (!$result) {
-        $errs=$app_func->error();
-
-        $errs=$app_func->error();
-        $k1="published_state_UK";
-        $chkrslt=check_error($errs,$k1);
-        if($chkrslt)
-        {
-            phpgrid_error("رقم الجوال موجود مسبقاً لايمسح بالتكرار ادخل رقم جديد");
-        }
-
-
-        $errs=$app_func->error();
-
-        $msg="خطاء غير متوقع: " .$errs;
+        $errs = $app_func->error();
+        $msg = "خطاء غير متوقع: " . $errs;
         phpgrid_error($msg);
-
     }
-
-
 }
 
 //---------------------Edit funcation start here----------------
 
 function update_data($data)
 {
-    global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;
-    $User_names=$_SESSION['AppLoginName'];
-    $mss=date('Y-m-d');
+    global $Applogins_cls, $app_func;
+    $userid = intval($Applogins_cls->useridx ?? 1);
+    $User_names = addslashes($_SESSION['AppLoginName'] ?? 'admin');
+    $mss = date('Y-m-d H:i:s');
 
-    list($lang_id,$why_us_Id) = explode("-",$data["pk"]);
+    $pk = $data["pk"] ?? ($data["id"] ?? '');
+    $parts = explode("-", $pk);
+    $langid = intval($parts[0] ?? 0);
+    $empno = intval($parts[1] ?? 0);
 
-    $langid=$lang_id;
-    $empno=$why_us_Id;
-
-
+    $allowed = array('sector_id', 'activity_id', 'Name_Partenr', 'point1', 'point2', 'point3', 'point4', 'point5', 'logo', 'url', 'order_id', 'Is_Actieved');
     $s = array();
-    foreach($data["params"] as $k=>$v)
+    foreach ($data["params"] as $k => $v)
     {
-
-
-        if ($k!="getimage" && $k!="getimage2"&& $k!="sector_id") {
-            $vv=str_replace("'","",$v);
-            $s[] = "$k = '$vv'";
+        if (in_array($k, $allowed)) {
+            $vv = in_array($k, array('sector_id', 'activity_id', 'order_id')) ? intval($v) : addslashes($v);
+            $s[] = "`$k` = '$vv'";
         }
-
     }
-    $s = implode(",",$s);
-    $set=",Modify_date='$mss',created_by='$User_names',User_id='$userid' ";
-    $s=$s." ".$set;
+    $s[] = "`Modify_date` = '$mss'";
+    $s[] = "`created_by` = '$User_names'";
+    $s[] = "`User_id` = '$userid'";
+    $s_str = implode(", ", $s);
 
-    $w = "why_us_Id=$empno and lang_id='$langid' ";
-    $result = $app_func->query("UPDATE why_us set  $s WHERE $w");
-// phpgrid_error($result);
-    if (!$result) {
-        $errs=$app_func->error();
-        $msg="خطاء غير متوقع: " .$errs;
-        phpgrid_error($msg);
-
+    $w = "why_us_Id = $empno AND lang_id = '$langid'";
+    try {
+        $result = $app_func->query("UPDATE why_us SET $s_str WHERE $w");
+        if (!$result) {
+            phpgrid_error("خطاء غير متوقع: " . $app_func->error());
+        }
+    } catch (\Throwable $e) {
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());
     }
 }
 
