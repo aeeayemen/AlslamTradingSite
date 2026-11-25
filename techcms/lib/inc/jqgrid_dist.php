@@ -1756,6 +1756,8 @@ class jqgrid
 						unset($data['id']);
 
 					unset($data['oper']);
+					if ($pk_field == 'pk')
+						unset($data['pk']);
 
 					$update_str = array();
 
@@ -1845,6 +1847,8 @@ class jqgrid
 						unset($data['id']);
 
 					unset($data['oper']);
+					if ($pk_field == 'pk')
+						unset($data['pk']);
 
 					$update_str = array();
 
