@@ -255,99 +255,63 @@ $grid->set_events($e);
 
 function add_data($data)
 {
-   global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;  
+    global $Applogins_cls, $app_func;
+    $userid = intval($Applogins_cls->useridx ?? 1);  
+
+    $value_id = $app_func->GetOrderTable('value_id', 'our_values');
+    $value_title = addslashes($data["params"]["value_title"] ?? '');
+    $Is_Actieved = addslashes($data["params"]["Is_Actieved"] ?? 'Yes');
+    $User_names = addslashes($_SESSION['AppLoginName'] ?? 'admin');
+    $mss = date('Y-m-d H:i:s');
+    $creating_date = $mss;
+    $Image = addslashes($data["params"]["Image"] ?? '');  
  
-
-  $value_id=$app_func->GetOrderTable('value_id','our_values');
- 
-$order_id=$data["params"]["order_id"]; 
-$value_title=str_replace("'","",$data["params"]["value_title"]);
-
-$Is_Actieved=$data["params"]["Is_Actieved"];
-$User_names=$_SESSION['AppLoginName'];
-$mss=date('Y-m-d');
-$creating_date=$mss;
- $Image = $data["params"]["Image"];  
- 
-    $result=0;
- 
-
-$newquerys="insert into  our_values (value_id,creating_date,Is_Actieved,Image,value_title,created_by,User_id) values 
-($value_id,'$creating_date','$Is_Actieved','$Image','$value_title','$userid','$userid')";
-       $result = $app_func->query($newquerys);
-
- 
-if (!$result) {
-    $errs=$app_func->error();
-   $k1="Title_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error(" عفواً يوجد عميل مضاف بنفس الاسم مسبقاً قم بتغيير الاسم");
-   }
-  
-  
-   $errs=$app_func->error();
-
-   $msg="خطاء غير متوقع: " .$errs;
-     phpgrid_error($msg);   
-    
-}
-
-
+    $newquerys = "insert into our_values (value_id, creating_date, Is_Actieved, Image, value_title, created_by, User_id) values 
+($value_id, '$creating_date', '$Is_Actieved', '$Image', '$value_title', '$User_names', '$userid')";
+    try {
+        $result = $app_func->query($newquerys);
+        if (!$result) {
+            phpgrid_error("خطاء غير متوقع: " . $app_func->error());   
+        }
+    } catch (\Throwable $e) {
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());   
+    }
 }
 
 //---------------------Edit funcation start here----------------
 
 function update_data($data)
 {
-    global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;  
-    $User_names=$_SESSION['AppLoginName'];
-   $mss=date('Y-m-d'); 
+    global $Applogins_cls, $app_func;
+    $userid = intval($Applogins_cls->useridx ?? 1);  
+    $User_names = addslashes($_SESSION['AppLoginName'] ?? 'admin');
+    $mss = date('Y-m-d H:i:s'); 
 
-     $empno=$data["value_id"];
-  $s = array();
-  foreach($data["params"] as $k=>$v)
-  {
-     
-    if ($k!="getimage"  ) {
-       $s[] = "$k = '$v'";  
+    $empno = intval($data["value_id"] ?? ($data["id"] ?? 0));
+    $allowed = array('value_title', 'Image', 'Is_Actieved');
+    $s = array();
+    foreach ($data["params"] as $k => $v)
+    {
+        if (in_array($k, $allowed)) {
+            $vv = addslashes($v);
+            $s[] = "`$k` = '$vv'";  
+        }
     }
-        
-  }
  
-  $s = implode(",",$s);
-    $set=",Modify_date='$mss',created_by='$User_names',User_id='$userid'";
-  $s=$s." ".$set; 
-  $w = "value_id =$empno";
- // phpgrid_error("UPDATE our_values set  $s WHERE $w");
+    $s[] = "`Modify_date` = '$mss'";
+    $s[] = "`created_by` = '$User_names'";
+    $s[] = "`User_id` = '$userid'";
+    $s_str = implode(", ", $s); 
+    $w = "value_id = $empno";
   
-$result = $app_func->query("UPDATE our_values set  $s WHERE $w");
-if (!$result) {
-    $errs=$app_func->error();
-   $k1="Title_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error(" يوجد عميل مضاف مسبقاً بهذا الاسم لايُسمح بالتكرار  تاكد من الاسم العربي");
-   }
-   
-    $errs=$app_func->error();
-   $k1="keyword";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error("رقم الفاكس موجود مسبقاً لايمسح بالتكرار ادخل رقم جديد");
-   }
-  
-   $errs=$app_func->error();
-
-   $msg="خطاء غير متوقع: " .$errs;
-     phpgrid_error($msg);   
-    
-}
+    try {
+        $result = $app_func->query("UPDATE our_values SET $s_str WHERE $w");
+        if (!$result) {
+            phpgrid_error("خطاء غير متوقع: " . $app_func->error());   
+        }
+    } catch (\Throwable $e) {
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());   
+    }
 }
 
 //---------------------filter_display funcation start here----------------
