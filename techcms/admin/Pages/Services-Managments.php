@@ -315,11 +315,12 @@ $grid->set_events($e);
 
 function add_data($data)
 {
+    global $app_func;
      global $Applogins_cls;
     $userid=$Applogins_cls->useridx;  
    $service_id= 1;
-  $result=mysql_query("SELECT MAX(service_id)+1 AS NB FROM  services");
- while ($row = mysql_fetch_assoc($result)) {
+  $result=$app_func->query("SELECT MAX(service_id)+1 AS NB FROM  services");
+ while ($row = $result->fetch_assoc()) {
     if($row["NB"]>0)
     {
    $service_id= $row["NB"];     
@@ -349,11 +350,11 @@ $creating_date=$mss;
 
 $newquerys="insert into  services (service_id,creating_date,Is_Actieved,Image,service_title,content,short_desc,created_by,User_id) values 
 ($service_id,'$creating_date','$Is_Actieved','$Image','$service_title','$content','$short_desc','$User_names','$userid')";
-       $result = mysql_query($newquerys);
+       $result = $app_func->query($newquerys);
 
  
 if (!$result) {
-    $errs=mysql_error();
+    $errs=$app_func->error();
    $k1="Title_UK";
    $chkrslt=check_error($errs,$k1);
    if($chkrslt)
@@ -361,14 +362,14 @@ if (!$result) {
 phpgrid_error(" عفواً يوجد عميل مضاف بنفس الاسم مسبقاً قم بتغيير الاسم");
    }
    
-       $errs=mysql_error();
+       $errs=$app_func->error();
    $k1="keyword_UK";
    $chkrslt=check_error($errs,$k1);
    if($chkrslt)
    {
 phpgrid_error("هذا الايميل مقترن بعميل اخر لايًسمح بالتكرار ادخل ايميل جديد");
    }
-   $errs=mysql_error();
+   $errs=$app_func->error();
    $k1="seo_description_UK";
    $chkrslt=check_error($errs,$k1);
    if($chkrslt)
@@ -377,7 +378,7 @@ phpgrid_error("رقم الجوال موجود مسبقاً لايمسح بالت
    }
    
   
-   $errs=mysql_error();
+   $errs=$app_func->error();
 
    $msg="خطاء غير متوقع: " .$errs;
      phpgrid_error($msg);   
@@ -391,6 +392,7 @@ phpgrid_error("رقم الجوال موجود مسبقاً لايمسح بالت
 
 function update_data($data)
 {
+    global $app_func;
     global $Applogins_cls;
     $userid=$Applogins_cls->useridx;  
     $User_names=$_SESSION['AppLoginName'];
@@ -413,37 +415,37 @@ function update_data($data)
   $w = "service_id =$empno";
  // phpgrid_error("UPDATE services set  $s WHERE $w");
   
-$result = mysql_query("UPDATE services set  $s WHERE $w");
+$result = $app_func->query("UPDATE services set  $s WHERE $w");
 if (!$result) {
-    $errs=mysql_error();
+    $errs=$app_func->error();
    $k1="Title_UK";
    $chkrslt=check_error($errs,$k1);
    if($chkrslt)
    {
 phpgrid_error(" يوجد عميل مضاف مسبقاً بهذا الاسم لايُسمح بالتكرار  تاكد من الاسم العربي");
    }
-     $errs=mysql_error();
+     $errs=$app_func->error();
    $k1="cmpny_name_en_UK";
    $chkrslt=check_error($errs,$k1);
    if($chkrslt)
    {
 phpgrid_error(" يوجد عميل مضاف مسبقاً بهذا الاسم لايُسمح بالتكرار  تاكد من الاسم الانجليزي");
    }
-       $errs=mysql_error();
+       $errs=$app_func->error();
    $k1="keyword_UK";
    $chkrslt=check_error($errs,$k1);
    if($chkrslt)
    {
 phpgrid_error("هذا الايميل مقترن بعميل اخر لايًسمح بالتكرار ادخل ايميل جديد");
    }
-   $errs=mysql_error();
+   $errs=$app_func->error();
    $k1="seo_description_UK";
    $chkrslt=check_error($errs,$k1);
    if($chkrslt)
    {
 phpgrid_error("رقم الجوال موجود مسبقاً لايمسح بالتكرار ادخل رقم جديد");
    }
-    $errs=mysql_error();
+    $errs=$app_func->error();
    $k1="keyword";
    $chkrslt=check_error($errs,$k1);
    if($chkrslt)
@@ -451,7 +453,7 @@ phpgrid_error("رقم الجوال موجود مسبقاً لايمسح بالت
 phpgrid_error("رقم الفاكس موجود مسبقاً لايمسح بالتكرار ادخل رقم جديد");
    }
   
-   $errs=mysql_error();
+   $errs=$app_func->error();
 
    $msg="خطاء غير متوقع: " .$errs;
      phpgrid_error($msg);   
@@ -490,16 +492,17 @@ function filter_display($data)
 
 function delete_data($data)
 {
+    global $app_func;
      $empno=$data["service_id"];
   
   $res=0;
      
       $w = "service_id = $empno ";
-  $res=mysql_query("DELETE from services WHERE $w");
+  $res=$app_func->query("DELETE from services WHERE $w");
  
-    $errnos= mysql_errno();
+    $errnos= $app_func->errno();
     if (!$res) {
-  $errs=mysql_error();
+  $errs=$app_func->error();
     if ($errnos==1451){
     $msg="لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبه به في جداول اخرى";
      phpgrid_error($msg); 

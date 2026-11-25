@@ -425,23 +425,22 @@ function add_data($data)
   $category_name=str_replace("'","",$data["params"]["category_name"]);
   $category_short_desc=str_replace("'","",$data["params"]["category_short_desc"]);
   $category_content=str_replace("'","",$data["params"]["category_content"]);
-  $Pathbaner= $data["params"]["category_baner"];
-  $Pathimg= $data["params"]["category_img"];
-  $Pathimgs= $data["params"]["category_imgs"];
-  $order_id=$data["params"]["order_id"];
-  $is_featured = $data["params"]["is_featured"];
+  $Pathimg= $data["params"]["category_img"] ?? '';
+  $Pathimgs= $data["params"]["category_imgs"] ?? '';
+  $order_id=intval($data["params"]["order_id"] ?? 0);
+  $is_featured = $data["params"]["is_featured"] ?? 'No';
 
-  $User_names=$_SESSION['AppLoginName'];
+  $User_names=$_SESSION['AppLoginName'] ?? 'admin';
   $mss=date('Y-m-d');
   $creating_date=$mss;      
-  $Is_Actieved= $data["params"]["Is_Actieved"];  
+  $Is_Actieved= $data["params"]["Is_Actieved"] ?? 'Yes';  
 
   $result=0;
     $getlan=$app_func->query("select * from languages");
      while ($row=$getlan->fetch_assoc()) {
       $lang_id1=$row['lang_id'];
-  $newquerys="INSERT INTO `category`(`category_id`, `activity_id`, `sector_id`, `lang_id`, `category_name`,`category_short_desc`, `category_content`,`category_baner`,`category_img`, `category_imgs`,`order_id`,`is_featured`,`creating_date`,`Is_Actieved` ,`created_by`,`User_id`) VALUES
-   ('$category_id','$activity_id','$sector_id','$lang_id1','$category_name','$category_short_desc','$category_content','$Pathbaner','$Pathimg','$Pathimgs','$order_id','$is_featured','$mss','$Is_Actieved','$User_names','$userid')";
+  $newquerys="INSERT INTO `category`(`category_id`, `activity_id`, `sector_id`, `lang_id`, `category_name`,`category_short_desc`, `category_content`,`category_img`, `category_imgs`,`order_id`,`is_featured`,`creating_date`,`Is_Actieved` ,`created_by`,`User_id`) VALUES
+   ('$category_id','$activity_id','$sector_id','$lang_id1','$category_name','$category_short_desc','$category_content','$Pathimg','$Pathimgs','$order_id','$is_featured','$mss','$Is_Actieved','$User_names','$userid')";
          $result = $app_func->query($newquerys);
      
  

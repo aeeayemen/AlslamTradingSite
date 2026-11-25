@@ -98,6 +98,12 @@ class App_Funcation
         return $connection->error;
     }
 
+    public function errno()
+    {
+        $connection = $this->connect();
+        return $connection->errno;
+    }
+
     /**
      * Quote and escape value for use in a database query
      *

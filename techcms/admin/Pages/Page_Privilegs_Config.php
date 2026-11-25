@@ -7,8 +7,7 @@
  */ 
 include("Load_grid.php");
 // set up DB
-mysql_connect(PHPGRID_DBHOST, PHPGRID_DBUSER, PHPGRID_DBPASS);
-mysql_select_db(PHPGRID_DBNAME);
+
 // include and create object
 $pagename= basename($_SERVER["SCRIPT_FILENAME"]);
  $pagenames=str_replace(".php","",$pagename);
@@ -177,13 +176,14 @@ $grid->set_events($e);
 
 function add_data($data)
 {
+    global $app_func;
     
 //$idx=$data["params"]["id"];   
 $citid=$data["params"]["Page_id"];
  $zoneid=$data["params"]["Privilege_id"];
   $cityids= 1;
-  $result=mysql_query("SELECT MAX(id)+1 AS NB FROM  page_privilegs_config where Page_id=$citid");
- while ($row = mysql_fetch_assoc($result)) {
+  $result=$app_func->query("SELECT MAX(id)+1 AS NB FROM  page_privilegs_config where Page_id=$citid");
+ while ($row = $result->fetch_assoc()) {
     if($row["NB"]>0)
     {
    $cityids= $row["NB"];     
@@ -194,23 +194,23 @@ $citid=$data["params"]["Page_id"];
 $is_granteds=$data["params"]["is_granted"];
 $newquerys="insert into  page_privilegs_config (id,Page_id,Privilege_id,is_granted) values ('$cityids','$citid','$zoneid','$is_granteds')";
 
-$result = mysql_query($newquerys);
+$result = $app_func->query($newquerys);
 if (!$result) {
-    $errs=mysql_error();
+    $errs=$app_func->error();
    $k1="Page_privilegs_config_Privilegs_fk";
    $chkrslt=check_error($errs,$k1);
    if($chkrslt)
    {
 phpgrid_error("تم ربط الصلاحية المحدده مسبقاً لايمسح بالتكرار");
    }
-    $errs=mysql_error();
+    $errs=$app_func->error();
    $k1="Page_privilegs_config_App_Pages_fk";
    $chkrslt=check_error($errs,$k1);
    if($chkrslt)
    {
 phpgrid_error("تم ربط الصلاحية المحدده مسبقاً لايمسح بالتكرار");
    }   
-   $errs=mysql_error();
+   $errs=$app_func->error();
 
    $msg="Invalid query: " .$errs;
      phpgrid_error($msg);   
@@ -224,6 +224,7 @@ phpgrid_error("تم ربط الصلاحية المحدده مسبقاً لايم
 
 function update_data($data)
 {
+    global $app_func;
    	list($city,$zone) = explode("-",$data["pk"]);
 
 	$s = array();
@@ -241,16 +242,16 @@ function update_data($data)
 	
 	$w = "Page_id = $city and Privilege_id=$zone";
 	   
-$result = mysql_query("UPDATE page_privilegs_config set  $s WHERE $w");
+$result = $app_func->query("UPDATE page_privilegs_config set  $s WHERE $w");
 if (!$result) {
-   $errs=mysql_error();
+   $errs=$app_func->error();
    $k1="Page_privilegs_config_Privilegs_fk";
    $chkrslt=check_error($errs,$k1);
    if($chkrslt)
    {
 phpgrid_error("تم ربط الصلاحية المحدده مسبقاً لايمسح بالتكرار");
    }
-   $errs=mysql_error();
+   $errs=$app_func->error();
 
    $msg="Invalid query: " .$errs;
      phpgrid_error($msg);   
@@ -265,12 +266,13 @@ phpgrid_error("تم ربط الصلاحية المحدده مسبقاً لايم
 
 function delete_data($data)
 {
+    global $app_func;
 		list($city,$zone) = explode("-",$data["pk"]);
 	$w = "Page_id = $city and Privilege_id=$zone";
-	$res=mysql_query("DELETE from page_privilegs_config WHERE $w");
-    $errnos= mysql_errno();
+	$res=$app_func->query("DELETE from page_privilegs_config WHERE $w");
+    $errnos= $app_func->errno();
     if (!$res) {
-  $errs=mysql_error();
+  $errs=$app_func->error();
     if ($errnos==1451){
     $msg="لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبه به في جداول اخرى";
      phpgrid_error($msg); 

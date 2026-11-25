@@ -232,36 +232,36 @@ $grid->set_events($e);
 
 function add_data($data)
 {
-     $cityids= 0;
-  $result=mysql_query("SELECT MAX(grup_id)+1 AS NB FROM privilege_groups");
- while ($row = mysql_fetch_assoc($result)) {
+    global $app_func;
+     global $app_func;
+     $cityids= 1;
+  $result=$app_func->query("SELECT MAX(grup_id)+1 AS NB FROM privilege_groups");
+  if ($result && $row = $result->fetch_assoc()) {
     if($row["NB"]>0)
     {
-   $cityids= $row["NB"];     
-    }else{
-        $cityids= 0;
+       $cityids= $row["NB"];     
     }
+  }
    
-}
-   
-    $User_names=$_SESSION['AppLoginName'];
-  $CityName_ars=$data["params"]["grup_title_ar"];
-$CityName_ens=$data["params"]["grup_title_en"];
-$Is_actives=$data["params"]["Is_Actieved"];
-$can_login_anytime=$data["params"]["can_login_anytime"];
-$activetodate=$data["params"]["Actived_To_Date"];
-$Descriptions=$data["params"]["Group_Notes"];
+    $User_names=$_SESSION['AppLoginName'] ?? 'admin';
+  $CityName_ars=addslashes($data["params"]["grup_title_ar"] ?? '');
+$CityName_ens=addslashes($data["params"]["grup_title_en"] ?? '');
+$Is_actives=addslashes($data["params"]["Is_Actieved"] ?? 'Yes');
+$can_login_anytime=intval($data["params"]["can_login_anytime"] ?? 1);
+$activetodate=addslashes($data["params"]["Actived_To_Date"] ?? date('Y-m-d', strtotime('+5 years')));
+$Descriptions=addslashes($data["params"]["Group_Notes"] ?? '');
+$groupkey='grp_' . $cityids;
 
 $mss=date('Y-m-d');
 $add_dates=$mss;
 $Last_Modifys=$add_dates;
-$newquerys="insert into privilege_groups (grup_id,grup_title_ar, grup_title_en, Group_Notes,Actived_To_Date, Is_Actieved, can_login_anytime, add_date,User_name) values 
-($cityids,'$CityName_ars','$CityName_ens','$Descriptions','$activetodate','$Is_actives',$can_login_anytime,'$Last_Modifys','$User_names')";
+$newquerys="insert into privilege_groups (grup_id,grup_title_ar, grup_title_en, Group_Notes,Actived_To_Date, Is_Actieved, can_login_anytime, add_date, groupkey) values 
+($cityids,'$CityName_ars','$CityName_ens','$Descriptions','$activetodate','$Is_actives',$can_login_anytime,'$Last_Modifys','$groupkey')";
 
-$result = mysql_query($newquerys);
+$result = $app_func->query($newquerys);
 if (!$result) {
    
-   $errs=mysql_error();
+   $errs=$app_func->error();
    $k1="Privilege_grup_title_ar_UK";
    $chkrslt=check_error($errs,$k1);
    if($chkrslt)
@@ -275,7 +275,7 @@ if (!$result) {
     phpgrid_error("تم اضافةهذا الاسم مسبقاً لايُسمح بالتكرار  تاكد من التسمية -انجليزي ");
    }
     
-   $msg="Invalid query: ".mysql_error();
+   $msg="Invalid query: ".$app_func->error();
      phpgrid_error($msg);   
     
 }
@@ -287,6 +287,7 @@ if (!$result) {
 
 function update_data($data)
 {
+    global $app_func;
    $User_names=$_SESSION['AppLoginName'];
    $mss=date('Y-m-d');
      //$data["params"]["Last_Modify"]=$mss;
@@ -305,10 +306,10 @@ function update_data($data)
   $s=$s." ".$set;
   $w = "grup_id = $empno ";
      
-$result = mysql_query("UPDATE privilege_groups set  $s WHERE $w");
+$result = $app_func->query("UPDATE privilege_groups set  $s WHERE $w");
 if (!$result) {
    
-   $errs=mysql_error();
+   $errs=$app_func->error();
    $k1="Privilege_grup_title_ar_UK";
    $chkrslt=check_error($errs,$k1);
    if($chkrslt)
@@ -322,7 +323,7 @@ if (!$result) {
     phpgrid_error("تم اضافةهذا الاسم مسبقاً لايُسمح بالتكرار  تاكد من التسمية -انجليزي ");
    }
     
-   $msg="Invalid query: " .mysql_errno();
+   $msg="Invalid query: " .$app_func->errno();
      phpgrid_error($msg);   
     
 }
@@ -361,12 +362,13 @@ function filter_display($data)
 
 function delete_data($data)
 {
+    global $app_func;
   $city=$data["grup_id"];
   $w = "grup_id = $city";
-  $res=mysql_query("DELETE from privilege_groups WHERE $w");
-    $errnos= mysql_errno();
+  $res=$app_func->query("DELETE from privilege_groups WHERE $w");
+    $errnos= $app_func->errno();
     if (!$res) {
-  $errs=mysql_error();
+  $errs=$app_func->error();
     if ($errnos==1451){
     $msg="لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبه به في جداول اخرى";
      phpgrid_error($msg); 
@@ -574,6 +576,7 @@ $grid2->set_events($e1);
 
 function update_data2($data)
 {
+    global $app_func;
     list($grpid,$city,$zone) = explode("-",$data["pk"]);
 
   $s = array();
@@ -591,9 +594,9 @@ function update_data2($data)
   
   $w = "grup_id=$grpid and Page_id = $city and Privilege_id=$zone";
      
-$result = mysql_query("UPDATE users_group_privilegs_config set  $s WHERE $w");
+$result = $app_func->query("UPDATE users_group_privilegs_config set  $s WHERE $w");
 if (!$result) {
-   $errs=mysql_error();
+   $errs=$app_func->error();
    $k1="PRIMARY";
    $chkrslt=check_error($errs,$k1);
    if($chkrslt)
@@ -601,7 +604,7 @@ if (!$result) {
      phpgrid_error("حدث خطاء اثناء الاضافة لايٌسمح بادخال بيانات متكرره ");
 
    }
-   $errs=mysql_error();
+   $errs=$app_func->error();
 
    $msg="Invalid query: " .$errs;
      phpgrid_error($msg);   
@@ -616,12 +619,13 @@ if (!$result) {
 
 function delete_data2($data)
 {
+    global $app_func;
     list($grpid,$city,$zone) = explode("-",$data["pk"]);
   $w = "grup_id=$grpid and Page_id = $city and Privilege_id=$zone";
-  $res=mysql_query("DELETE from users_group_privilegs_config WHERE $w");
-    $errnos= mysql_errno();
+  $res=$app_func->query("DELETE from users_group_privilegs_config WHERE $w");
+    $errnos= $app_func->errno();
     if (!$res) {
-  $errs=mysql_error();
+  $errs=$app_func->error();
     if ($errnos==1451){
     $msg="لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبه به في جداول اخرى";
      phpgrid_error($msg); 
@@ -635,52 +639,46 @@ function delete_data2($data)
 
 function add_data2($data)
 {
-    
-    $grup_id=intval($_GET["grup_id"]);;
-     $cityids= 0;
-  $result=mysql_query("SELECT MAX(id)+1 AS NB FROM users_group_privilegs_config where grup_id=$grup_id");
- while ($row = mysql_fetch_assoc($result)) {
+    global $app_func;
+    global $app_func;
+    $grup_id=intval($_REQUEST["grup_id"] ?? 0);
+     $cityids= 1;
+  $result=$app_func->query("SELECT MAX(id)+1 AS NB FROM users_group_privilegs_config where grup_id=$grup_id");
+  if ($result && $row = $result->fetch_assoc()) {
     if($row["NB"]>0)
     {
-   $cityids= $row["NB"];     
-    }else{
-        $cityids= 0;
+       $cityids= $row["NB"];     
     }
+  }
    
-}
-   
-    $User_names=$_SESSION['AppLoginName'];
-$Page_id=$data["params"]["Page_id"];
-$Privilege_id=$data["params"]["Privilege_id"];
-$is_granted=$data["params"]["is_granted"];
+$Page_id=intval($data["params"]["Page_id"] ?? 0);
+$Privilege_id=intval($data["params"]["Privilege_id"] ?? 0);
+$is_granted=intval($data["params"]["is_granted"] ?? 1);
 
-$mss=date('Y-m-d');
-$add_dates=$mss;
-$Last_Modifys=$add_dates;
- 
-  $checresultx=mysql_query("SELECT count(Privilege_id) AS NB FROM users_group_privilegs_config where grup_id=$grup_id and Page_id='$Page_id' and Privilege_id=5 ");
- while ($row = mysql_fetch_assoc($checresultx)) {
+  $checresultx=$app_func->query("SELECT count(Privilege_id) AS NB FROM users_group_privilegs_config where grup_id=$grup_id and Page_id='$Page_id' and Privilege_id=5 ");
+  $result = false;
+  if ($checresultx && $row = $checresultx->fetch_assoc()) {
     if($row["NB"]>0)
     {
-$newquerys="insert into users_group_privilegs_config (id,grup_id,Page_id, Privilege_id,is_granted,adding_date,Added_by,User_name) values 
-($cityids,'$grup_id','$Page_id','$Privilege_id','$is_granted','$add_dates','$User_names','$User_names')";
-$result = mysql_query($newquerys);
+$newquerys="insert into users_group_privilegs_config (id,grup_id,Page_id, Privilege_id,is_granted) values 
+($cityids,'$grup_id','$Page_id','$Privilege_id','$is_granted')";
+$result = $app_func->query($newquerys);
   
     }else{
-        $newquerys3="insert into users_group_privilegs_config (id,grup_id,Page_id, Privilege_id,is_granted,adding_date,Added_by,User_name) values 
-($cityids,'$grup_id','$Page_id','5','1','$add_dates','$User_names','$User_names')";
-$result = mysql_query($newquerys3);
+        $newquerys3="insert into users_group_privilegs_config (id,grup_id,Page_id, Privilege_id,is_granted) values 
+($cityids,'$grup_id','$Page_id','5','1')";
+$result = $app_func->query($newquerys3);
 $cityids+=1;
-$newquerys="insert into users_group_privilegs_config (id,grup_id,Page_id, Privilege_id,is_granted,adding_date,Added_by,User_name) values 
-($cityids,'$grup_id','$Page_id','$Privilege_id','$is_granted','$add_dates','$User_names','$User_names')";
-$result = mysql_query($newquerys);
+$newquerys="insert into users_group_privilegs_config (id,grup_id,Page_id, Privilege_id,is_granted) values 
+($cityids,'$grup_id','$Page_id','$Privilege_id','$is_granted')";
+$result = $app_func->query($newquerys);
     }    
 
 }
 
 if (!$result) {
    
-   $errs=mysql_error();
+   $errs=$app_func->error();
    $k1="PRIMARY";
    $chkrslt=check_error($errs,$k1);
    if($chkrslt)
@@ -694,7 +692,7 @@ if (!$result) {
     phpgrid_error("تم اضافةهذا الاسم مسبقاً لايُسمح بالتكرار  تاكد من التسمية -انجليزي ");
    }
     
-   $msg="Invalid query: " .mysql_errno;
+   $msg="Invalid query: " .$app_func->errno();
      phpgrid_error($msg);   
     
 }

@@ -237,8 +237,8 @@ $Page_name_en=$data["params"]["Page_name_en"];
 
   
 
-$newquerys="insert into app_pages (`Page_id`,`Cat_id`, `Page_filename`, `Page_name_ar`,`Page_name_en`,`Menu_order`,`Page_title_ar`,`Page_title_en`,`menu_icon`,`page_type`, `Is_visibled`, `Need_Logins`) values 
-('$Page_id','$Cat_id','$Page_filenamex','$Page_name_arx','$Page_name_en','$Menu_order','$Page_name_arx','$Page_name_en','$menu_icon','$page_type','1','1')";
+$newquerys="insert into app_pages (`Page_id`,`Cat_id`, `Page_filename`, `Page_name_ar`,`Page_name_en`,`Menu_order`,`menu_icon`,`page_type`) values 
+('$Page_id','$Cat_id','$Page_filenamex','$Page_name_arx','$Page_name_en','$Menu_order','$menu_icon','$page_type')";
  
 $result = $app_func->query($newquerys);
  

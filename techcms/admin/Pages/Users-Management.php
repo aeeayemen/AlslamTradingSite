@@ -424,8 +424,8 @@ $userids=$app_func->generateRandID2();
 $encrpypass=md5($APassword);
         
  
-$newquerys="insert into   employees_users (grup_id,User_id,Username,Shown_Name, User_Key,APassword,Password_Salt,Primary_Email, Moblile_No, Is_Actived,RelatedKey,Is_Privilages_cofiged, Is_Privilages_customized,Actived_Key,User_Note, Logopaht,adding_date,Added_by,AUser_name) values 
-($grup_id,'$User_id','$Usernames','$Emp_Name_ar','$userids','$encrpypass','$Password_Salts','$Emp_Email','$Moblile_No','$Is_Actived','$RelatedKey','0','0','$Actived_Keys','$User_Note','$imagepath','$add_dates','$User_nam','$User_nam')";
+$newquerys="insert into employees_users (grup_id,User_id,Username,Shown_Name, User_Key,APassword,Primary_Email, Moblile_No, Is_Actived,RelatedKey,User_Note, Logopaht,adding_date) values 
+($grup_id,'$User_id','$Usernames','$Emp_Name_ar','$userids','$encrpypass','$Emp_Email','$Moblile_No','$Is_Actived','$RelatedKey','$User_Note','$imagepath','$add_dates')";
 
 $result = $app_func->query($newquerys);
 if (!$result) {

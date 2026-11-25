@@ -246,9 +246,10 @@ $grid->set_events($e);
 
 function add_data($data)
 {
+    global $app_func;
      $cityids= 0;
   $result=$app_func->query("SELECT MAX(grup_id)+1 AS NB FROM privilege_groups");
- while ($row = mysql_fetch_assoc($result)) {
+ while ($row = $result->fetch_assoc()) {
     if($row["NB"]>0)
     {
    $cityids= $row["NB"];     
@@ -291,7 +292,7 @@ if (!$result) {
     phpgrid_error("تم اضافةهذا الاسم مسبقاً لايُسمح بالتكرار  تاكد من التسمية -انجليزي ");
    }
     
-   $msg="Invalid query: " .mysql_errno();
+   $msg="Invalid query: " .$app_func->errno();
      phpgrid_error($msg);   
     
 }
@@ -303,6 +304,7 @@ if (!$result) {
 
 function update_data($data)
 {
+    global $app_func;
    $User_names=$_SESSION['AppLoginName'];
    $mss=date('Y-m-d');
      //$data["params"]["Last_Modify"]=$mss;
@@ -378,6 +380,7 @@ function filter_display($data)
 
 function delete_data($data)
 {
+    global $app_func;
   $city=$data["grup_id"];
   $w = "grup_id = $city";
   $res=$app_func->query("DELETE from privilege_groups WHERE $w");

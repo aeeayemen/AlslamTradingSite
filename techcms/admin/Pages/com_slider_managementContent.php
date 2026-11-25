@@ -592,8 +592,8 @@ function add_data($data)
     $getlan=$app_func->query("select * from languages");
     while ($row=$getlan->fetch_assoc()) {
         $lang_id1=$row['lang_id'];
-        $newquerys="insert into com_sliders_items (Sitem_ID,lang_id,activity_id,titles, image,text1, text2,text3,text4,img1,img2,img3,img4,Modals, Is_Actived,sorder_id,creating_date,created_by,User_id) values 
-('$Sitem_ID','$lang_id1','$activity_id','$titless','$imagepath','$text1','$text2','$text3','$text4','$img1','$img2','$img3','$img4','$Modals','$Is_actives','$sorder_ids','$mss','$userid','$userid')";
+        $newquerys="insert into com_sliders_items (Sitem_ID,lang_id,activity_id,titles, image,text1, text2,text3,text4,img1,img2,img3,img4,Modals, Is_Actived,sorder_id,User_id) values 
+('$Sitem_ID','$lang_id1','$activity_id','$titless','$imagepath','$text1','$text2','$text3','$text4','$img1','$img2','$img3','$img4','$Modals','$Is_actives','$sorder_ids','$userid')";
         $result = $app_func->query($newquerys);
     }
 
