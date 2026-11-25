@@ -2236,10 +2236,13 @@ class jqgrid
 			// persist for export data
 			if (isset($_GET["export"]))
 			{
-				$sidx = $_SESSION["jqgrid_{$grid_id}_sort_by"];
-				$sord = $_SESSION["jqgrid_{$grid_id}_sort_order"];
-				$limit = $_SESSION["jqgrid_{$grid_id}_rows"];
-				$having = $_SESSION["jqgrid_{$grid_id}_having"];
+				if (!empty($_SESSION["jqgrid_{$grid_id}_sort_by"])) $sidx = $_SESSION["jqgrid_{$grid_id}_sort_by"];
+				if (!empty($_SESSION["jqgrid_{$grid_id}_sort_order"])) $sord = $_SESSION["jqgrid_{$grid_id}_sort_order"];
+				if (!empty($_SESSION["jqgrid_{$grid_id}_rows"])) $limit = $_SESSION["jqgrid_{$grid_id}_rows"];
+				$having = $_SESSION["jqgrid_{$grid_id}_having"] ?? "";
+				if (empty($sidx)) $sidx = 1;
+				if (empty($sord)) $sord = "ASC";
+				if (empty($limit)) $limit = 20;
 			}
 			else
 			{
@@ -2292,10 +2295,10 @@ class jqgrid
 					$export_having = "";
 
 					// if range is filtered OR filters are passed in url (export selected feature)
-					if ($this->options["export"]["range"] == "filtered" || !empty($_GET["filters"]))
+					if (($this->options["export"]["range"] ?? "") == "filtered" || !empty($_GET["filters"]))
 					{
-						$export_where = $_SESSION["jqgrid_{$grid_id}_filter"];
-						$export_having = $_SESSION["jqgrid_{$grid_id}_having"];
+						$export_where = $_SESSION["jqgrid_{$grid_id}_filter"] ?? "";
+						$export_having = $_SESSION["jqgrid_{$grid_id}_having"] ?? "";
 					}
 
 					$limit_sql= "";

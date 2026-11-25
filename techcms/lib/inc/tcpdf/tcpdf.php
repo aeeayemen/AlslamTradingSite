@@ -2997,7 +2997,7 @@ class TCPDF {
 		if (empty($orientation)) {
 			$orientation = $default_orientation;
 		} else {
-			$orientation = strtoupper($orientation{0});
+			$orientation = strtoupper($orientation[0]);
 		}
 		if (in_array($orientation, $valid_orientations) AND ($orientation != $default_orientation)) {
 			$this->CurOrientation = $orientation;
@@ -3449,7 +3449,7 @@ class TCPDF {
 			$slen = strlen($brd);
 			$newbrd = array();
 			for ($i = 0; $i < $slen; ++$i) {
-				$newbrd[$brd{$i}] = true;
+				$newbrd[$brd[$i]] = true;
 			}
 			$brd = $newbrd;
 		} elseif (($brd === 1) OR ($brd === true) OR (is_numeric($brd) AND (intval($brd) > 0))) {
@@ -6102,7 +6102,7 @@ class TCPDF {
 			$slen = strlen($brd);
 			$newbrd = array();
 			for ($i = 0; $i < $slen; ++$i) {
-				$newbrd[$brd{$i}] = array('cap' => 'square', 'join' => 'miter');
+				$newbrd[$brd[$i]] = array('cap' => 'square', 'join' => 'miter');
 			}
 			$brd = $newbrd;
 		}
@@ -6623,7 +6623,7 @@ class TCPDF {
 			$slen = strlen($brd);
 			$newbrd = array();
 			for ($i = 0; $i < $slen; ++$i) {
-				$newbrd[$brd{$i}] = array('cap' => 'square', 'join' => 'miter');
+				$newbrd[$brd[$i]] = array('cap' => 'square', 'join' => 'miter');
 			}
 			$brd = $newbrd;
 		}
@@ -7312,6 +7312,8 @@ class TCPDF {
 	 * @since 2.3.000 (2008-03-05)
 	 */
 	public function unichr($c) {
+		if ($c === "" || $c === null) { return ""; }
+		$c = (int)$c;
 		if (!$this->isunicode) {
 			return chr($c);
 		} elseif ($c <= 0x7F) {
@@ -7470,7 +7472,7 @@ class TCPDF {
 		$cached_file = false; // true when the file is cached
 		$exurl = ''; // external streams
 		// check if we are passing an image as file or string
-		if ($file{0} === '@') {
+		if ($file[0] === '@') {
 			// image from string
 			$imgdata = substr($file, 1);
 			$file = K_PATH_CACHE.'img_'.md5($imgdata);
@@ -7485,7 +7487,7 @@ class TCPDF {
 				$cached_file = false;
 			}
 		} else { // image file
-			if ($file{0} === '*') {
+			if ($file[0] === '*') {
 				// image as external stream
 				$file = substr($file, 1);
 				$exurl = $file;
@@ -7574,7 +7576,7 @@ class TCPDF {
 				// height difference
 				$hdiff = ($oldh - $h);
 				// vertical alignment
-				switch (strtoupper($fitbox{1})) {
+				switch (strtoupper($fitbox[1])) {
 					case 'T': {
 						break;
 					}
@@ -7595,7 +7597,7 @@ class TCPDF {
 				// width difference
 				$wdiff = ($oldw - $w);
 				// horizontal alignment
-				switch (strtoupper($fitbox{0})) {
+				switch (strtoupper($fitbox[0])) {
 					case 'L': {
 						if ($this->rtl) {
 							$x -= $wdiff;
@@ -7882,7 +7884,7 @@ class TCPDF {
 	public function set_mqr($mqr) {
 		if (!defined('PHP_VERSION_ID')) {
 			$version = PHP_VERSION;
-			define('PHP_VERSION_ID', (($version{0} * 10000) + ($version{2} * 100) + $version{4}));
+			define('PHP_VERSION_ID', (($version[0] * 10000) + ($version[2] * 100) + $version[4]));
 		}
 		if (PHP_VERSION_ID < 50300) {
 			@set_magic_quotes_runtime($mqr);
@@ -7897,7 +7899,7 @@ class TCPDF {
 	public function get_mqr() {
 		if (!defined('PHP_VERSION_ID')) {
 			$version = PHP_VERSION;
-			define('PHP_VERSION_ID', (($version{0} * 10000) + ($version{2} * 100) + $version{4}));
+			define('PHP_VERSION_ID', (($version[0] * 10000) + ($version[2] * 100) + $version[4]));
 		}
 		if (PHP_VERSION_ID < 50300) {
 			return @get_magic_quotes_runtime();
@@ -8020,9 +8022,9 @@ class TCPDF {
 			// get ICC sequence length
 			$length = ($this->_getUSHORT($data, ($pos - 2)) - 16);
 			// marker sequence number
-			$msn = max(1, ord($data{($pos + 12)}));
+			$msn = max(1, ord($data[($pos + 12)]));
 			// number of markers (total of APP2 used)
-			$nom = max(1, ord($data{($pos + 13)}));
+			$nom = max(1, ord($data[($pos + 13)]));
 			// get sequence segment
 			$icc[($msn - 1)] = substr($data, ($pos + 14), $length);
 			// move forward to next sequence
@@ -8032,7 +8034,7 @@ class TCPDF {
 		if (count($icc) > 0) {
 			ksort($icc);
 			$icc = implode('', $icc);
-			if ((ord($icc{36}) != 0x61) OR (ord($icc{37}) != 0x63) OR (ord($icc{38}) != 0x73) OR (ord($icc{39}) != 0x70)) {
+			if ((ord($icc[36]) != 0x61) OR (ord($icc[37]) != 0x63) OR (ord($icc[38]) != 0x73) OR (ord($icc[39]) != 0x70)) {
 				// invalid ICC profile
 				$icc = false;
 			}
@@ -8116,9 +8118,9 @@ class TCPDF {
 				// read transparency info
 				$t = $this->rfread($f, $n);
 				if ($ct == 0) {
-					$trns = array(ord($t{1}));
+					$trns = array(ord($t[1]));
 				} elseif ($ct == 2) {
-					$trns = array(ord($t{1}), ord($t{3}), ord($t{5}));
+					$trns = array(ord($t[1]), ord($t[3]), ord($t[5]));
 				} else {
 					$pos = strpos($t, chr(0));
 					if ($pos !== false) {
@@ -8464,7 +8466,7 @@ class TCPDF {
 			$dest = $dest ? 'D' : 'F';
 		}
 		$dest = strtoupper($dest);
-		if ($dest{0} != 'F') {
+		if ($dest[0] != 'F') {
 			$name = preg_replace('/[\s]+/', '_', $name);
 			$name = preg_replace('/[^a-zA-Z0-9_\.-]/', '', $name);
 		}
@@ -9804,8 +9806,8 @@ class TCPDF {
 			if ($gid > 0xFFFF) {
 				$gid -= 0x10000;
 			}
-			$map{($cid * 2)} = chr($gid >> 8);
-			$map{(($cid * 2) + 1)} = chr($gid & 0xFF);
+			$map[($cid * 2)] = chr($gid >> 8);
+			$map[(($cid * 2) + 1)] = chr($gid & 0xFF);
 		}
 		return $map;
 	}
@@ -9973,7 +9975,7 @@ class TCPDF {
 			$elen = strlen($encrypted);
 			$eplain = '';
 			for ($i = 0; $i < $elen; ++$i) {
-				$chr = ord($encrypted{$i});
+				$chr = ord($encrypted[$i]);
 				$eplain .= chr($chr ^ ($r >> 8));
 				$r = ((($chr + $r) * $c1 + $c2) % 65536);
 			}
@@ -10050,7 +10052,7 @@ class TCPDF {
 				$clen = strlen($cd);
 				$ccom = array();
 				for ($i = 0; $i < $clen; ++$i) {
-					$chr = ord($cd{$i});
+					$chr = ord($cd[$i]);
 					$ccom[] = ($chr ^ ($r >> 8));
 					$r = ((($chr + $r) * $c1 + $c2) % 65536);
 				}
@@ -11248,12 +11250,12 @@ class TCPDF {
 				$font = file_get_contents($fontfile);
 				$compressed = (substr($file, -2) == '.z');
 				if ((!$compressed) AND (isset($info['length2']))) {
-					$header = (ord($font{0}) == 128);
+					$header = (ord($font[0]) == 128);
 					if ($header) {
 						// strip first binary header
 						$font = substr($font, 6);
 					}
-					if ($header AND (ord($font{$info['length1']}) == 128)) {
+					if ($header AND (ord($font[$info['length1']]) == 128)) {
 						// strip second binary header
 						$font = substr($font, 0, $info['length1']).substr($font, ($info['length1'] + 6));
 					}
@@ -13106,7 +13108,7 @@ $font = unserialize($flat_array);
 			$strarr = array();
 			$strlen = strlen($str);
 			for ($i=0; $i < $strlen; ++$i) {
-				$strarr[] = ord($str{$i});
+				$strarr[] = ord($str[$i]);
 			}
 			// insert new value on cache
 			$this->cache_UTF8StringToArray[$strkey]['s'] = $strarr;
@@ -13120,7 +13122,7 @@ $font = unserialize($flat_array);
 		$str .= ''; // force $str to be a string
 		$length = strlen($str);
 		for ($i = 0; $i < $length; ++$i) {
-			$char = ord($str{$i}); // get one string character at time
+			$char = ord($str[$i]); // get one string character at time
 			if (count($bytes) == 0) { // get starting octect
 				if ($char <= 0x7F) {
 					$unichar = $char; // use the character "as is" because is ASCII
@@ -13402,7 +13404,7 @@ $font = unserialize($flat_array);
 	 * @public
 	 */
 	public function addHtmlLink($url, $name, $fill=false, $firstline=false, $color='', $style=-1, $firstblock=false) {
-		if (!$this->empty_string($url) AND ($url{0} == '#')) {
+		if (!$this->empty_string($url) AND ($url[0] == '#')) {
 			// convert url to internal link
 			$lnkdata = explode(',', $url);
 			if (isset($lnkdata[0])) {
@@ -13490,7 +13492,7 @@ $font = unserialize($flat_array);
 			}
 			return $returncolor;
 		}
-		if ($color{0} != '#') {
+		if ($color[0] != '#') {
 			// COLOR NAME
 			if (isset($this->webcolor[$color])) {
 				// web color
@@ -13806,7 +13808,7 @@ $font = unserialize($flat_array);
 			$j = 0;
 			for ($i = 0; $i < 256; ++$i) {
 				$t = $rc4[$i];
-				$j = ($j + $t + ord($k{$i})) % 256;
+				$j = ($j + $t + ord($k[$i])) % 256;
 				$rc4[$i] = $rc4[$j];
 				$rc4[$j] = $t;
 			}
@@ -13826,7 +13828,7 @@ $font = unserialize($flat_array);
 			$rc4[$a] = $rc4[$b];
 			$rc4[$b] = $t;
 			$k = $rc4[($rc4[$a] + $rc4[$b]) % 256];
-			$out .= chr(ord($text{$i}) ^ $k);
+			$out .= chr(ord($text[$i]) ^ $k);
 		}
 		return $out;
 	}
@@ -13880,7 +13882,7 @@ $font = unserialize($flat_array);
 			for ($i = 1; $i <= 19; ++$i) {
 				$ek = '';
 				for ($j = 0; $j < $len; ++$j) {
-					$ek .= chr(ord($this->encryptdata['key']{$j}) ^ $i);
+					$ek .= chr(ord($this->encryptdata['key'][$j]) ^ $i);
 				}
 				$enc = $this->_RC4($ek, $enc);
 			}
@@ -13931,7 +13933,7 @@ $font = unserialize($flat_array);
 				for ($i = 1; $i <= 19; ++$i) {
 					$ek = '';
 					for ($j = 0; $j < $len; ++$j) {
-						$ek .= chr(ord($owner_key{$j}) ^ $i);
+						$ek .= chr(ord($owner_key[$j]) ^ $i);
 					}
 					$enc = $this->_RC4($ek, $enc);
 				}
@@ -14250,7 +14252,7 @@ $font = unserialize($flat_array);
 			++$bslength;
 		}
 		for ($i = 0; $i < $bslength; $i += 2) {
-			$string .= chr(hexdec($bs{$i}.$bs{($i + 1)}));
+			$string .= chr(hexdec($bs[$i].$bs[($i + 1)]));
 		}
 		return $string;
 	}
@@ -16108,7 +16110,7 @@ $font = unserialize($flat_array);
 		$escname = '';
 		$length = strlen($name);
 		for ($i = 0; $i < $length; ++$i) {
-			$chr = $name{$i};
+			$chr = $name[$i];
 			if (preg_match('/[0-9a-zA-Z]/', $chr) == 1) {
 				$escname .= $chr;
 			} else {
@@ -16468,7 +16470,7 @@ $font = unserialize($flat_array);
 		$k = $this->k;
 		$this->javascript .= sprintf("f".$name."=this.addField('%s','%s',%u,[%.2F,%.2F,%.2F,%.2F]);", $name, $type, $this->PageNo()-1, $x*$k, ($this->h-$y)*$k+1, ($x+$w)*$k, ($this->h-$y-$h)*$k+1)."\n";
 		$this->javascript .= 'f'.$name.'.textSize='.$this->FontSizePt.";\n";
-		while (list($key, $val) = each($prop)) {
+		foreach ($prop as $key => $val) {
 			if (strcmp(substr($key, -5), 'Color') == 0) {
 				$val = $this->_JScolor($val);
 			} else {
@@ -18849,7 +18851,7 @@ $font = unserialize($flat_array);
 		// check page for no-write regions and adapt page margins if necessary
 		list($x, $y) = $this->checkPageRegions($h, $x, $y);
 		$k = $this->k;
-		if ($file{0} === '@') { // image from string
+		if ($file[0] === '@') { // image from string
 			$data = substr($file, 1);
 		} else { // EPS/AI file
 			$data = file_get_contents($file);
@@ -18962,7 +18964,7 @@ $font = unserialize($flat_array);
 		$cnt = count($lines);
 		for ($i=0; $i < $cnt; ++$i) {
 			$line = $lines[$i];
-			if (($line == '') OR ($line{0} == '%')) {
+			if (($line == '') OR ($line[0] == '%')) {
 				continue;
 			}
 			$len = strlen($line);
@@ -19066,7 +19068,7 @@ $font = unserialize($flat_array);
 					if ($skip) {
 						break;
 					}
-					$line{$len-1} = strtolower($cmd);
+					$line[$len-1] = strtolower($cmd);
 					$this->_out($line);
 					break;
 				}
@@ -20058,7 +20060,7 @@ $font = unserialize($flat_array);
 				$attrib = strtolower(trim($attrib[0]));
 				if (!empty($attrib)) {
 					// check if matches class, id, attribute, pseudo-class or pseudo-element
-					switch ($attrib{0}) {
+					switch ($attrib[0]) {
 						case '.': { // class
 							if (in_array(substr($attrib, 1), $class)) {
 								$valid = true;
@@ -20125,7 +20127,7 @@ $font = unserialize($flat_array);
 							break;
 						}
 						case ':': { // pseudo-class or pseudo-element
-							if ($attrib{1} == ':') { // pseudo-element
+							if ($attrib[1] == ':') { // pseudo-element
 								// pseudo-elements are not supported!
 								// (::first-line, ::first-letter, ::before, ::after)
 							} else { // pseudo-class
@@ -20802,7 +20804,7 @@ $font = unserialize($flat_array);
 				$tagname = strtolower($tag[1]);
 				// check if we are inside a table header
 				if ($tagname == 'thead') {
-					if ($element{0} == '/') {
+					if ($element[0] == '/') {
 						$thead = false;
 					} else {
 						$thead = true;
@@ -20817,7 +20819,7 @@ $font = unserialize($flat_array);
 				} else {
 					$dom[$key]['block'] = false;
 				}
-				if ($element{0} == '/') {
+				if ($element[0] == '/') {
 					// *** closing html tag
 					$dom[$key]['opening'] = false;
 					$dom[$key]['parent'] = end($level);
@@ -20913,7 +20915,7 @@ $font = unserialize($flat_array);
 					// get attributes
 					preg_match_all('/([^=\s]*)[\s]*=[\s]*"([^"]*)"/', $element, $attr_array, PREG_PATTERN_ORDER);
 					$dom[$key]['attribute'] = array(); // reset attribute array
-					while (list($id, $name) = each($attr_array[1])) {
+					foreach ($attr_array[1] as $id => $name) {
 						$dom[$key]['attribute'][strtolower($name)] = $attr_array[2][$id];
 					}
 					if (!empty($css)) {
@@ -20926,7 +20928,7 @@ $font = unserialize($flat_array);
 						// get style attributes
 						preg_match_all('/([^;:\s]*):([^;]*)/', $dom[$key]['attribute']['style'], $style_array, PREG_PATTERN_ORDER);
 						$dom[$key]['style'] = array(); // reset style attribute array
-						while (list($id, $name) = each($style_array[1])) {
+						foreach ($style_array[1] as $id => $name) {
 							// in case of duplicate attribute the last replace the previous
 							$dom[$key]['style'][strtolower($name)] = trim($style_array[2][$id]);
 						}
@@ -21031,15 +21033,15 @@ $font = unserialize($flat_array);
 						}
 						// font style
 						if (isset($dom[$key]['style']['font-weight'])) {
-							if (strtolower($dom[$key]['style']['font-weight']{0}) == 'n') {
+							if (strtolower($dom[$key]['style']['font-weight'][0]) == 'n') {
 								if (strpos($dom[$key]['fontstyle'], 'B') !== false) {
 									$dom[$key]['fontstyle'] = str_replace('B', '', $dom[$key]['fontstyle']);
 								}
-							} elseif (strtolower($dom[$key]['style']['font-weight']{0}) == 'b') {
+							} elseif (strtolower($dom[$key]['style']['font-weight'][0]) == 'b') {
 								$dom[$key]['fontstyle'] .= 'B';
 							}
 						}
-						if (isset($dom[$key]['style']['font-style']) AND (strtolower($dom[$key]['style']['font-style']{0}) == 'i')) {
+						if (isset($dom[$key]['style']['font-style']) AND (strtolower($dom[$key]['style']['font-style'][0]) == 'i')) {
 							$dom[$key]['fontstyle'] .= 'I';
 						}
 						// font color
@@ -21058,13 +21060,13 @@ $font = unserialize($flat_array);
 							foreach ($decors as $dec) {
 								$dec = trim($dec);
 								if (!$this->empty_string($dec)) {
-									if ($dec{0} == 'u') {
+									if ($dec[0] == 'u') {
 										// underline
 										$dom[$key]['fontstyle'] .= 'U';
-									} elseif ($dec{0} == 'l') {
+									} elseif ($dec[0] == 'l') {
 										// line-trough
 										$dom[$key]['fontstyle'] .= 'D';
-									} elseif ($dec{0} == 'o') {
+									} elseif ($dec[0] == 'o') {
 										// overline
 										$dom[$key]['fontstyle'] .= 'O';
 									}
@@ -21083,7 +21085,7 @@ $font = unserialize($flat_array);
 						}
 						// check for text alignment
 						if (isset($dom[$key]['style']['text-align'])) {
-							$dom[$key]['align'] = strtoupper($dom[$key]['style']['text-align']{0});
+							$dom[$key]['align'] = strtoupper($dom[$key]['style']['text-align'][0]);
 						}
 						// check for CSS border properties
 						if (isset($dom[$key]['style']['border'])) {
@@ -21247,9 +21249,9 @@ $font = unserialize($flat_array);
 						// font size
 						if (isset($dom[$key]['attribute']['size'])) {
 							if ($key > 0) {
-								if ($dom[$key]['attribute']['size']{0} == '+') {
+								if ($dom[$key]['attribute']['size'][0] == '+') {
 									$dom[$key]['fontsize'] = $dom[($dom[$key]['parent'])]['fontsize'] + intval(substr($dom[$key]['attribute']['size'], 1));
-								} elseif ($dom[$key]['attribute']['size']{0} == '-') {
+								} elseif ($dom[$key]['attribute']['size'][0] == '-') {
 									$dom[$key]['fontsize'] = $dom[($dom[$key]['parent'])]['fontsize'] - intval(substr($dom[$key]['attribute']['size'], 1));
 								} else {
 									$dom[$key]['fontsize'] = intval($dom[$key]['attribute']['size']);
@@ -21291,10 +21293,10 @@ $font = unserialize($flat_array);
 					if (($dom[$key]['value'] == 'pre') OR ($dom[$key]['value'] == 'tt')) {
 						$dom[$key]['fontname'] = $this->default_monospaced_font;
 					}
-					if (($dom[$key]['value']{0} == 'h') AND (intval($dom[$key]['value']{1}) > 0) AND (intval($dom[$key]['value']{1}) < 7)) {
+					if (($dom[$key]['value'][0] == 'h') AND (intval($dom[$key]['value'][1]) > 0) AND (intval($dom[$key]['value'][1]) < 7)) {
 						// headings h1, h2, h3, h4, h5, h6
 						if (!isset($dom[$key]['attribute']['size']) AND !isset($dom[$key]['style']['font-size'])) {
-							$headsize = (4 - intval($dom[$key]['value']{1})) * 2;
+							$headsize = (4 - intval($dom[$key]['value'][1])) * 2;
 							$dom[$key]['fontsize'] = $dom[0]['fontsize'] + $headsize;
 						}
 						if (!isset($dom[$key]['style']['font-weight'])) {
@@ -21356,7 +21358,7 @@ $font = unserialize($flat_array);
 					}
 					// check for text alignment
 					if (isset($dom[$key]['attribute']['align']) AND (!$this->empty_string($dom[$key]['attribute']['align'])) AND ($dom[$key]['value'] !== 'img')) {
-						$dom[$key]['align'] = strtoupper($dom[$key]['attribute']['align']{0});
+						$dom[$key]['align'] = strtoupper($dom[$key]['attribute']['align'][0]);
 					}
 					// check for text rendering mode (the following attributes do not exist in HTML)
 					if (isset($dom[$key]['attribute']['stroke'])) {
@@ -22047,7 +22049,7 @@ Putting 1 is equivalent to putting 0 and calling Ln() just after. Default value:
 									if (($stroffset !== false) AND ($stroffset <= $strpiece[2][1])) {
 										// set offset to the end of string section
 										$offset = strpos($pmid, ')]', $stroffset);
-										while (($offset !== false) AND ($pmid{($offset - 1)} == '\\')) {
+										while (($offset !== false) AND ($pmid[($offset - 1)] == '\\')) {
 											$offset = strpos($pmid, ')]', ($offset + 1));
 										}
 										if ($offset === false) {
@@ -23079,7 +23081,7 @@ Putting 1 is equivalent to putting 0 and calling Ln() just after. Default value:
 			}
 			case 'img': {
 				if (isset($tag['attribute']['src'])) {
-					if ($tag['attribute']['src']{0} === '@') {
+					if ($tag['attribute']['src'][0] === '@') {
 						// data stream
 						$tag['attribute']['src'] = '@'.base64_decode(substr($tag['attribute']['src'], 1));
 						$type = '';
@@ -23141,7 +23143,7 @@ Putting 1 is equivalent to putting 0 and calling Ln() just after. Default value:
 					$imglink = '';
 					if (isset($this->HREF['url']) AND !$this->empty_string($this->HREF['url'])) {
 						$imglink = $this->HREF['url'];
-						if ($imglink{0} == '#') {
+						if ($imglink[0] == '#') {
 							// convert url to internal link
 							$lnkdata = explode(',', $imglink);
 							if (isset($lnkdata[0])) {
@@ -27107,7 +27109,7 @@ Putting 1 is equivalent to putting 0 and calling Ln() just after. Default value:
 			// convert SVG to raster image using GD or ImageMagick libraries
 			return $this->Image($file, $x, $y, $w, $h, 'SVG', $link, $align, true, 300, $palign, false, false, $border, false, false, false);
 		}
-		if ($file{0} === '@') { // image from string
+		if ($file[0] === '@') { // image from string
 			$this->svgdir = '';
 			$svgdata = substr($file, 1);
 		} else { // SVG file
@@ -28590,7 +28592,7 @@ Putting 1 is equivalent to putting 0 and calling Ln() just after. Default value:
 					$this->SVGTransform($tm);
 					$obstyle = $this->setSVGStyles($svgstyle, $prev_svgstyle, $x, $y, $w, $h);
 					// fix image path
-					if (!$this->empty_string($this->svgdir) AND (($img{0} == '.') OR (basename($img) == $img))) {
+					if (!$this->empty_string($this->svgdir) AND (($img[0] == '.') OR (basename($img) == $img))) {
 						// replace relative path with full server path
 						$img = $this->svgdir.'/'.$img;
 					}

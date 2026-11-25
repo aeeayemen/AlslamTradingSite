@@ -1069,16 +1069,18 @@ class TCPDF_EasyTable extends TCPDF{
            $this->SetFont('dejavusans', '', 11);
       
 $ntdate=date('Y-m-d');
- $bodxz='<table width="100%" cellpadding="0" cellspacing="0"  style=" font-family: Helvetica Neue, Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0">
+        $logoFile = dirname(__DIR__, 3) . '/uploads/logo.png';
+        $logoHtml = file_exists($logoFile) ? '<img src="' . $logoFile . '" border="0" width="120" align="center" />' : '';
+        $bodxz='<table width="100%" cellpadding="0" cellspacing="0"  style=" font-family: Helvetica Neue, Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0">
 							<tr   style=" font-family: Helvetica Neue, Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0" >
 									<td class="content-block"  id="tdx"  style="font-family: Helvetica Neue, Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px; text-align: center;">
- <img src="http://localhost/Golden-Maps/Gadmins/uploads/panoram/logo.png" border="1" width="100" height="80" align="center" />
+ ' . $logoHtml . '
   
 </td></tr></table><hr/>';
         $this->writeHTML($bodxz, true, true, true, false, '');
          $this->Cell(49, 7, 'تم الاصدار بتاريخ:'.$ntdate, 0, true, 'L', 0, '', 0, false, 'B', 'T');
       
-        $this->Cell(189, 8, 'تطبيق خرائط جولدن', 0, true, 'L', 0, '', 0, false, 'B', 'T');
+        $this->Cell(189, 8, 'مؤسسة السلام للتجارة والتوكيلات العامة', 0, true, 'L', 0, '', 0, false, 'B', 'T');
          
     }
 
