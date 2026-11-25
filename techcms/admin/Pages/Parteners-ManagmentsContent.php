@@ -352,103 +352,92 @@ $grid->set_events($e);
 
 function add_data($data)
 {
-    global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;
+    global $Applogins_cls, $app_func;
+    $userid = intval($Applogins_cls->useridx ?? 1);
     
-  $Partenr_Id=$app_func->GetOrderTable('Partenr_Id','partenrs');
-    $lang_id=$data["params"]["lang_id"];
-    // $sector_id=$data["params"]["sector_id"];
-    $url=$data["params"]["url"];
-    $order_id=$data["params"]["order_id"];
-    $Is_Actieved=$data["params"]["Is_Actieved"];
-    $Is_visible=$data["params"]["Is_visible"];
-    $User_names=$_SESSION['AppLoginName'];
-    $mss=date('Y-m-d');
-    $creating_date=$mss;
-    $Name_Partenr=str_replace("'","",$data["params"]["Name_Partenr"]);
-    $partenrs_content=str_replace("'","",$data["params"]["partenrs_content"]);
-    $Pathpartenrs = $data["params"]["logo"];
-    $activity_id = $data["params"]["activity_id"];
-    $Partenr_type='partenrs';
-       
-    $result=0;
-    $getlan=$app_func->query("select * from languages");
-     while ($row=$getlan->fetch_assoc()) {
-      $lang_id1=$row['lang_id'];
+    $Partenr_Id = $app_func->GetOrderTable('Partenr_Id', 'partenrs');
+    $url = addslashes($data["params"]["url"] ?? '');
+    $order_id = !empty($data["params"]["order_id"]) ? intval($data["params"]["order_id"]) : 1;
+    $Is_Actieved = addslashes($data["params"]["Is_Actieved"] ?? 'Yes');
+    $Is_visible = addslashes($data["params"]["Is_visible"] ?? 'Yes');
     
-$newquerys="insert into partenrs (`Partenr_Id`,`activity_id`, `lang_id`, `Partenr_type`,`Name_Partenr`,`url`, `logo`,  `order_id`,`Is_Actieved`,`Is_visible`,`created_by`, `creating_date`, `User_id`) values 
-('$Partenr_Id','$activity_id','$lang_id1','$Partenr_type','$Name_Partenr','$url','$Pathpartenrs','$order_id','$Is_Actieved','$Is_visible','$User_names','$creating_date','$userid')";
-         $result = $app_func->query($newquerys);
- 
-}
-
-    if (!$result) {
-        $errs=$app_func->error();
+    $User_names = addslashes($_SESSION['AppLoginName'] ?? 'admin');
+    $mss = date('Y-m-d H:i:s');
+    $creating_date = $mss;
+    $Name_Partenr = addslashes($data["params"]["Name_Partenr"] ?? '');
+    $Pathpartenrs = addslashes($data["params"]["logo"] ?? '');
+    $activity_id = !empty($data["params"]["activity_id"]) ? intval($data["params"]["activity_id"]) : 0;
+    $sector_id = !empty($data["params"]["sector_id"]) ? intval($data["params"]["sector_id"]) : 0;
+    $Partenr_type = 'partenrs';
        
-        $errs=$app_func->error();
-        $k1="published_state_UK";
-        $chkrslt=check_error($errs,$k1);
-        if($chkrslt)
-        {
-            phpgrid_error("رقم الجوال موجود مسبقاً لايمسح بالتكرار ادخل رقم جديد");
+    $result = 0;
+    try {
+        $getlan = $app_func->query("select * from languages");
+        while ($row = $getlan->fetch_assoc()) {
+            $lang_id1 = intval($row['lang_id']);
+            $newquerys = "insert into partenrs (`Partenr_Id`,`sector_id`,`activity_id`, `lang_id`, `Partenr_type`,`Name_Partenr`,`url`, `logo`, `order_id`,`Is_Actieved`,`Is_visible`,`created_by`, `creating_date`, `User_id`) values 
+('$Partenr_Id','$sector_id','$activity_id','$lang_id1','$Partenr_type','$Name_Partenr','$url','$Pathpartenrs','$order_id','$Is_Actieved','$Is_visible','$User_names','$creating_date','$userid')";
+            $result = $app_func->query($newquerys);
         }
-
-
-        $errs=$app_func->error();
-
-        $msg="خطاء غير متوقع: " .$errs;
-        phpgrid_error($msg);
-
+    } catch (\Throwable $e) {
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());
     }
 
-
+    if (!$result) {
+        $errs = $app_func->error();
+        $msg = "خطاء غير متوقع: " . $errs;
+        phpgrid_error($msg);
+    }
 }
 
 //---------------------Edit funcation start here----------------
 
 function update_data($data)
 {
-       global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;
-    $User_names=$_SESSION['AppLoginName'];
-    $mss=date('Y-m-d');
+    global $Applogins_cls, $app_func;
+    $userid = intval($Applogins_cls->useridx ?? 1);
+    $User_names = addslashes($_SESSION['AppLoginName'] ?? 'admin');
+    $mss = date('Y-m-d H:i:s');
 
-    list($lang_id,$Partenr_Id) = explode("-",$data["pk"]);
-
-    $langid=$lang_id;
-    $empno=$Partenr_Id;
-
-
-    $s = array();
-    foreach($data["params"] as $k=>$v)
-    {
-
-
-        if ($k!="getimage" && $k!="getimagemanger" && $k!="getgellary") {
-            $vv=str_replace("'","",$v);
-            $s[] = "$k = '$vv'";
-        }
-
+    $pk = $data["pk"] ?? ($data["id"] ?? '');
+    $parts = explode("-", $pk);
+    $langid = intval($parts[0] ?? 0);
+    $empno = intval($parts[1] ?? 0);
+    if ($empno <= 0) {
+        $empno = intval($data["Partenr_Id"] ?? 0);
     }
-    $s = implode(",",$s);
-    $set=",Modify_date='$mss',created_by='$User_names',User_id='$userid' ";
-    $s=$s." ".$set;
 
-    $w = "Partenr_Id=$empno and lang_id='$langid' ";
-    $result = $app_func->query("UPDATE partenrs set  $s WHERE $w");
-// phpgrid_error($result);
-    if (!$result) {
-        $errs=$app_func->error();
-        $msg="خطاء غير متوقع: " .$errs;
-        phpgrid_error($msg);
+    $allowed = array('sector_id', 'activity_id', 'Name_Partenr', 'url', 'logo', 'order_id', 'Is_Actieved', 'Is_visible');
+    $s = array();
+    foreach ($data["params"] as $k => $v) {
+        if (in_array($k, $allowed)) {
+            $vv = in_array($k, array('sector_id', 'activity_id', 'order_id')) ? intval($v) : addslashes($v);
+            $s[] = "`$k` = '$vv'";
+        }
+    }
+    $s[] = "`Modify_date` = '$mss'";
+    $s[] = "`created_by` = '$User_names'";
+    $s[] = "`User_id` = '$userid'";
+    $s_str = implode(", ", $s);
 
+    $w = "Partenr_Id = $empno";
+    if ($langid > 0) {
+        $w .= " AND lang_id = '$langid'";
+    }
+
+    try {
+        $result = $app_func->query("UPDATE partenrs SET $s_str WHERE $w");
+        if (!$result) {
+            phpgrid_error("خطاء غير متوقع: " . $app_func->error());
+        }
+    } catch (\Throwable $e) {
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());
     }
 }
 
 //---------------------filter_display funcation start here----------------
 function filter_display($data)
 {
-
     foreach($data["params"] as &$d)
     {
         $Partenr_Id= $d["Partenr_Id"];
@@ -456,53 +445,38 @@ function filter_display($data)
         if ($isactivs=="Yes")
         {
             $d["Is_Actieved"] ='فعال';
-
         }else{
             $d["Is_Actieved"] ='غير فعال';
         }
 
-
-
         $d["type_icon_path"] = techcms_render_grid_image($d["logo"] ?? "");   
-
-
-
-
     }
 }
-
 
 //---------------------delete_data funcation start here----------------
 
 function delete_data($data)
 {
-   global $Applogins_cls,$app_func;
-    list($lang_id,$Partenr_Id) = explode("-",$data["pk"]);
-
-    $langid=$lang_id;
-    $empno=$Partenr_Id;
-
-    $res=0;
-    $getlan=$app_func->query("select * from languages");
-     while ($row=$getlan->fetch_assoc()) {
-        $lang_id1=$row['lang_id'];
-        $w = "Partenr_Id = $empno and lang_id='$lang_id1' ";
-        $res=$app_func->query("DELETE from partenrs WHERE $w");
+    global $Applogins_cls, $app_func;
+    $pk = $data["pk"] ?? ($data["id"] ?? '');
+    $parts = explode("-", $pk);
+    $empno = intval($parts[1] ?? 0);
+    if ($empno <= 0) {
+        $empno = intval($data["Partenr_Id"] ?? 0);
     }
-    
-    if (!$res) {
-        $errs=$app_func->error();
-        if ($errnos==1451){
-            $msg="لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبه به في جداول اخرى";
-            phpgrid_error($msg);
-        }else{
-            $msg="حدث خطاء غير متوقع رقم الخطاء:".$errnos."  msg".$errs;
+
+    try {
+        $res = $app_func->query("DELETE from partenrs WHERE Partenr_Id = $empno");
+        if (!$res) {
+            phpgrid_error("خطاء غير متوقع: " . $app_func->error());
         }
-
+    } catch (\Throwable $e) {
+        if ($app_func->errno() == 1451) {
+            phpgrid_error("لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبطة به في جداول أخرى");
+        } else {
+            phpgrid_error("حدث خطاء غير متوقع: " . $e->getMessage());
+        }
     }
-
-
-
 }
 
 function check_error($err,$searchfor)
