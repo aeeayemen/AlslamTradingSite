@@ -500,26 +500,24 @@ function add_data($data)
 {
         global $Applogins_cls,$app_func;
 
-    $userid=$Applogins_cls->useridx;  
-    $Sitem_ID=$app_func->GetOrderTable('Sitem_ID','sliders_items');
-    $lang_id=$data["params"]["lang_id"];
-    $titless=$data["params"]["titles"];
-    $text1=str_replace("'","",$data["params"]["text1"]);
-    $text2=str_replace("'","",$data["params"]["text2"]);   
-
-    $text3=str_replace("'","",$data["params"]["text3"]);
-    $text4=str_replace("'","",$data["params"]["text4"]);   
+    $userid = intval($Applogins_cls->useridx ?? 1);  
+    $Sitem_ID = $app_func->GetOrderTable('Sitem_ID', 'sliders_items');
+    $lang_id = intval($data["params"]["lang_id"] ?? 1);
+    $titless = addslashes($data["params"]["titles"] ?? '');
+    $text1 = str_replace("'", "", $data["params"]["text1"] ?? '');
+    $text2 = str_replace("'", "", $data["params"]["text2"] ?? '');   
+    $text3 = str_replace("'", "", $data["params"]["text3"] ?? '');
+    $text4 = str_replace("'", "", $data["params"]["text4"] ?? '');   
       
-    $mss=date('Y-m-d H:i:s');
-    $creating_dates=$mss;
-    $Last_Modifys=$creating_dates;
-    $Is_actives=$data["params"]["Is_Actived"];
-    $imagepath=$data["params"]["image"];
-    $img1=$data["params"]["img1"];
-    $img2=$data["params"]["img2"];
-    $img3=$data["params"]["img3"];
-    $img4=$data["params"]["img4"];
-    $Modals=$data["params"]["Modals"];
+    $mss = date('Y-m-d H:i:s');
+    $Is_actives = addslashes($data["params"]["Is_Actived"] ?? 'Yes');
+    $imagepath = addslashes($data["params"]["image"] ?? '');
+    $img1 = addslashes($data["params"]["img1"] ?? '');
+    $img2 = addslashes($data["params"]["img2"] ?? '');
+    $img3 = addslashes($data["params"]["img3"] ?? '');
+    $img4 = addslashes($data["params"]["img4"] ?? '');
+    $Modals = addslashes($data["params"]["Modals"] ?? '');
+    $sorder_ids = intval($data["params"]["sorder_id"] ?? 1);
     $result=0;
     $getlan=$app_func->query("select * from languages");
      while ($row=$getlan->fetch_assoc()) {
@@ -560,36 +558,32 @@ if (!$result) {
 
 function update_data($data)
 {
-     global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;  
-    $User_names=$_SESSION['AppLoginName'];
-    $mss=date('Y-m-d');
-    list($lang_id,$Sitem_ID) = explode("-",$data["pk"]);
-
-    $langid=$lang_id;
-    $empno=$Sitem_ID;
- 
+    global $Applogins_cls, $app_func;
+    $userid = intval($Applogins_cls->useridx ?? 1);  
+    $User_names = addslashes($_SESSION['AppLoginName'] ?? 'admin');
+    $mss = date('Y-m-d H:i:s');
+    $pk = $data["pk"] ?? ($data["id"] ?? '');
+    $parts = explode("-", $pk);
+    $langid = intval($parts[0] ?? 0);
+    $empno = intval($parts[1] ?? 0);
      
-       
-  $s = array();
-  foreach($data["params"] as $k=>$v)
-  {
-    
-    if ($k!="getimagepaht" && $k!="getimage1" && $k!="getimage2" && $k!="getimage3" && $k!="getimage4" ) {
-      $vv=str_replace("'","",$v);
-       $s[] = "$k = '$vv'";   
+    $allowed = array('titles', 'image', 'text1', 'text2', 'text3', 'text4', 'img1', 'img2', 'img3', 'img4', 'Modals', 'sorder_id', 'Is_Actived');
+    $s = array();
+    foreach ($data["params"] as $k => $v)
+    {
+        if (in_array($k, $allowed)) {
+            $vv = ($k === 'sorder_id') ? intval($v) : str_replace("'", "", $v);
+            $s[] = "`$k` = '$vv'";   
+        }
     }
-     
-         
-  }
 
- 
- $s = implode(",",$s);
-    $set=",Modify_date='$mss',created_by='$User_names',User_id='$userid' ";
-  $s=$s." ".$set; 
+    $s[] = "`Modify_date` = '$mss'";
+    $s[] = "`created_by` = '$User_names'";
+    $s[] = "`User_id` = '$userid'";
+    $s_str = implode(", ", $s); 
    
-  $w = "Sitem_ID =$empno and lang_id='$langid' ";  
-$result = $app_func->query("UPDATE sliders_items set  $s WHERE $w");
+    $w = "Sitem_ID = $empno AND lang_id = '$langid'";  
+    $result = $app_func->query("UPDATE sliders_items SET $s_str WHERE $w");
 if (!$result) {
     $errs=$app_func->error();
    $k1="Title_UK";
