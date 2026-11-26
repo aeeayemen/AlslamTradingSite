@@ -247,57 +247,42 @@ $grid->set_events($e);
 function add_data($data)
 {
     global $app_func;
-     $cityids= 0;
-  $result=$app_func->query("SELECT MAX(grup_id)+1 AS NB FROM privilege_groups");
- while ($row = $result->fetch_assoc()) {
-    if($row["NB"]>0)
-    {
-   $cityids= $row["NB"];     
-    }else{
-        $cityids= 0;
+    $cityids = 1;
+    $result = $app_func->query("SELECT MAX(grup_id)+1 AS NB FROM privilege_groups");
+    if ($result && ($row = $result->fetch_assoc())) {
+        if (intval($row["NB"]) > 0) {
+            $cityids = intval($row["NB"]);
+        }
     }
-   
-}
-   
-    $User_names=$_SESSION['AppLoginName'];
-  $CityName_ars=$data["params"]["grup_title_ar"];
-$CityName_ens=$data["params"]["grup_title_en"];
-$Is_actives=$data["params"]["Is_Actieved"];
-$GroupKey=$data["params"]["GroupKey"];
-$can_login_anytime=$data["params"]["can_login_anytime"];
-$activetodate=$data["params"]["Actived_To_Date"];
-$Descriptions=$data["params"]["Group_Notes"];
 
-$mss=date('Y-m-d');
-$add_dates=$mss;
-$Last_Modifys=$add_dates;
-$newquerys="insert into privilege_groups (grup_id,grup_title_ar, grup_title_en,GroupKey, Group_Notes,Actived_To_Date, Is_Actieved, add_date) values 
-($cityids,'$CityName_ars','$CityName_ens','$GroupKey','$Descriptions','$activetodate','$Is_actives','$Last_Modifys')";
+    $CityName_ars = addslashes($data["params"]["grup_title_ar"] ?? '');
+    $CityName_ens = addslashes($data["params"]["grup_title_en"] ?? '');
+    $Is_actives = addslashes($data["params"]["Is_Actieved"] ?? 'Yes');
+    $GroupKey = !empty($data["params"]["GroupKey"]) ? addslashes($data["params"]["GroupKey"]) : substr(md5(uniqid('', true)), 0, 10);
+    $can_login_anytime = addslashes($data["params"]["can_login_anytime"] ?? 'Yes');
+    $activetodate_raw = trim($data["params"]["Actived_To_Date"] ?? '');
+    $activetodate_sql = ($activetodate_raw !== '' && strtoupper($activetodate_raw) !== 'NULL') ? "'" . addslashes($activetodate_raw) . "'" : "NULL";
+    $Descriptions = addslashes($data["params"]["Group_Notes"] ?? '');
+    $add_dates = date('Y-m-d H:i:s');
 
-$result = $app_func->query($newquerys);
-if (!$result) {
-   
-   $errs=$app_func->error();
-     
-   $k1="Privilege_grup_title_ar_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-    phpgrid_error("تم اضافةهذا الاسم مسبقاً لايُسمح بالتكرار  تاكد من التسمية عربي ");
-   }
-   $k1="Privilege_grup_title_en_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-    phpgrid_error("تم اضافةهذا الاسم مسبقاً لايُسمح بالتكرار  تاكد من التسمية -انجليزي ");
-   }
-    
-   $msg="Invalid query: " .$app_func->errno();
-     phpgrid_error($msg);   
-    
-}
+    $newquerys = "insert into privilege_groups (grup_id, grup_title_ar, grup_title_en, GroupKey, Group_Notes, Actived_To_Date, Is_Actieved, can_login_anytime, add_date) values 
+($cityids, '$CityName_ars', '$CityName_ens', '$GroupKey', '$Descriptions', $activetodate_sql, '$Is_actives', '$can_login_anytime', '$add_dates')";
 
-
+    try {
+        $result = $app_func->query($newquerys);
+        if (!$result) {
+            phpgrid_error("Invalid query: " . $app_func->error());
+        }
+    } catch (\Throwable $e) {
+        $errs = $e->getMessage();
+        if (check_error($errs, "Privilege_grup_title_ar_UK")) {
+            phpgrid_error("تم اضافةهذا الاسم مسبقاً لايُسمح بالتكرار  تاكد من التسمية عربي ");
+        }
+        if (check_error($errs, "Privilege_grup_title_en_UK")) {
+            phpgrid_error("تم اضافةهذا الاسم مسبقاً لايُسمح بالتكرار  تاكد من التسمية -انجليزي ");
+        }
+        phpgrid_error("Invalid query: " . $errs);
+    }
 }
 
 //---------------------Edit funcation start here----------------
@@ -305,97 +290,83 @@ if (!$result) {
 function update_data($data)
 {
     global $app_func;
-   $User_names=$_SESSION['AppLoginName'];
-   $mss=date('Y-m-d');
-     //$data["params"]["Last_Modify"]=$mss;
-      //$data["params"]["User_name"]=$User_names;
-        $empno=$data["grup_id"];
-  $s = array();
-  foreach($data["params"] as $k=>$v)
-  {
-    
-     
-    $s[] = "$k = '$v'";
-        
-  }
+    $mss = date('Y-m-d H:i:s');
+    $empno = intval($data["grup_id"] ?? ($data["id"] ?? 0));
 
-  $s = implode(",",$s);
-    $set=",Last_Modify='$mss',modify_by='$User_names' ";
-  $s=$s." ".$set;
-  $w = "grup_id = $empno ";
-        
-$result = $app_func->query("UPDATE privilege_groups set  $s WHERE $w");
-if (!$result) {
-   
-   $errs=$app_func->error();
-   $k1="Privilege_grup_title_ar_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-    phpgrid_error("تم اضافةهذا الاسم مسبقاً لايُسمح بالتكرار  تاكد من التسمية عربي ");
-   }
-   $k1="Privilege_grup_title_en_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-    phpgrid_error("تم اضافةهذا الاسم مسبقاً لايُسمح بالتكرار  تاكد من التسمية -انجليزي ");
-   }
-    
-   $msg="Invalid query: " .$app_func->error();
-     phpgrid_error($msg);   
-    
-}
+    $allowed = array('grup_title_ar', 'grup_title_en', 'GroupKey', 'Group_Notes', 'Actived_To_Date', 'Is_Actieved', 'can_login_anytime', 'Is_configrated');
+    $s = array();
+    foreach ($data["params"] as $k => $v) {
+        if (in_array($k, $allowed)) {
+            if ($k === 'Actived_To_Date') {
+                $val_trim = trim($v);
+                $s[] = ($val_trim !== '' && strtoupper($val_trim) !== 'NULL') ? "`$k` = '" . addslashes($val_trim) . "'" : "`$k` = NULL";
+            } else {
+                $s[] = "`$k` = '" . addslashes($v) . "'";
+            }
+        }
+    }
+    $s[] = "`Last_Modify` = '$mss'";
+    $s_str = implode(", ", $s);
+    $w = "grup_id = $empno";
 
+    try {
+        $result = $app_func->query("UPDATE privilege_groups SET $s_str WHERE $w");
+        if (!$result) {
+            phpgrid_error("Invalid query: " . $app_func->error());
+        }
+    } catch (\Throwable $e) {
+        $errs = $e->getMessage();
+        if (check_error($errs, "Privilege_grup_title_ar_UK")) {
+            phpgrid_error("تم اضافةهذا الاسم مسبقاً لايُسمح بالتكرار  تاكد من التسمية عربي ");
+        }
+        if (check_error($errs, "Privilege_grup_title_en_UK")) {
+            phpgrid_error("تم اضافةهذا الاسم مسبقاً لايُسمح بالتكرار  تاكد من التسمية -انجليزي ");
+        }
+        phpgrid_error("Invalid query: " . $errs);
+    }
 }
 
 //---------------------filter_display funcation start here----------------
 function filter_display($data) 
 { 
-    
     foreach($data["params"] as &$d) 
     { 
-        
-        
-        
-          $isactivs= $d["Is_Actieved"];
+        $isactivs= $d["Is_Actieved"];
         if ($isactivs)
         {
-           $d["Is_Actieved2"] ='فعال';
-           
+            $d["Is_Actieved2"] ='فعال';
         }else{
             $d["Is_Actieved2"] ='غير فعال';
         }
-      $isactivs= $d["can_login_anytime"];
+        $isactivs= $d["can_login_anytime"];
         if ($isactivs==1)
         {
-           $d["can_login_anytime2"] ='ممكن';
+            $d["can_login_anytime2"] ='ممكن';
         }else{
             $d["can_login_anytime2"] ='محدود';
         }
     } 
 } 
 
-
 //---------------------delete_data funcation start here----------------
 
 function delete_data($data)
 {
     global $app_func;
-  $city=$data["grup_id"];
-  $w = "grup_id = $city";
-  $res=$app_func->query("DELETE from privilege_groups WHERE $w");
-   
-    if (!$res) {
-  $errs=$app_func->error();
-    if ($errnos==1451){
-    $msg="لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبه به في جداول اخرى";
-     phpgrid_error($msg); 
-   }else{
-    $msg="حدث خطاء غير متوقع رقم الخطاء:".$errnos."  msg".$errs;
-   }
-   
+    $city = intval($data["grup_id"] ?? ($data["id"] ?? 0));
+    $w = "grup_id = $city";
+    try {
+        $res = $app_func->query("DELETE from privilege_groups WHERE $w");
+        if (!$res) {
+            phpgrid_error("حدث خطاء غير متوقع: " . $app_func->error());
         }
-
+    } catch (\Throwable $e) {
+        if ($app_func->errno() == 1451) {
+            phpgrid_error("لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبه به في جداول اخرى");
+        } else {
+            phpgrid_error("حدث خطاء غير متوقع: " . $e->getMessage());
+        }
+    }
 }
 
 function check_error($err,$searchfor)
