@@ -441,155 +441,93 @@ $grid->set_events($e);
 
 function add_data($data)
 {
-  global $Applogins_cls,$app_func;
-  $userid=$Applogins_cls->useridx;
-   //meake caonter id as autoincrement 
-  $project_id=$app_func->GetOrderTable('project_id','project');
-      
-   
-  $activity_id=$data["params"]["activity_id"];
-  $sector_id=$data["params"]["sector_id"];
-  $lang_id=$data["params"]["lang_id"]; 
-  $project_name=str_replace("'","",$data["params"]["project_name"]);
-  $project_short_desc=str_replace("'","",$data["params"]["project_short_desc"]);
-  $project_content=str_replace("'","",$data["params"]["project_content"]);
-  $Pathbaner= $data["params"]["project_baner"];
-  $Pathimg= $data["params"]["project_img"];
-  $Pathimgs= $data["params"]["project_imgs"];
-  $order_id=$data["params"]["order_id"];
-  $is_featured = $data["params"]["is_featured"];
+    global $Applogins_cls, $app_func;
+    $userid = intval($Applogins_cls->useridx ?? 1);
+    $project_id = $app_func->GetOrderTable('project_id', 'project');
 
-  $User_names=$_SESSION['AppLoginName'];
-  $mss=date('Y-m-d');
-  $creating_date=$mss;      
-  $Is_Actieved= $data["params"]["Is_Actieved"];  
+    $activity_id = !empty($data["params"]["activity_id"]) ? intval($data["params"]["activity_id"]) : 1;
+    $sector_id = !empty($data["params"]["sector_id"]) ? intval($data["params"]["sector_id"]) : 1;
+    $project_name = addslashes($data["params"]["project_name"] ?? '');
+    $project_short_desc = addslashes($data["params"]["project_short_desc"] ?? '');
+    $project_content = addslashes($data["params"]["project_content"] ?? '');
+    $Pathbaner = addslashes($data["params"]["project_baner"] ?? '');
+    $Pathimg = addslashes($data["params"]["project_img"] ?? '');
+    $Pathimgs = addslashes($data["params"]["project_imgs"] ?? '');
+    $order_id = !empty($data["params"]["order_id"]) ? intval($data["params"]["order_id"]) : 1;
+    $is_featured = addslashes($data["params"]["is_featured"] ?? 'No');
 
-  $result=0;
-    $getlan=$app_func->query("select * from languages");
-     while ($row=$getlan->fetch_assoc()) {
-      $lang_id1=$row['lang_id'];
-  $newquerys="INSERT INTO `project`(`project_id`, `activity_id`, `sector_id`, `lang_id`, `project_name`,`project_short_desc`, `project_content`,`project_baner`,`project_img`, `project_imgs`,`order_id`,`is_featured`,`creating_date`,`Is_Actieved` ,`created_by`,`User_id`) VALUES
-   ('$project_id','$activity_id','$sector_id','$lang_id1','$project_name','project_short_desc','$project_content','$Pathbaner','$Pathimg','$Pathimgs','$order_id','$is_featured','$mss','$Is_Actieved','$User_names','$userid')";
-         $result = $app_func->query($newquerys);
-     
- 
- }
-if (!$result) {
-    $errs=$app_func->error();
-   $k1="title_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error(" عفواً يوجد عميل مضاف بنفس الاسم مسبقاً قم بتغيير الاسم");
-   }
-    $errs=$app_func->error();
-        $k1="project_cateagory_project_FK";
-        $chkrslt=check_error($errs,$k1);
-        if($chkrslt)
-        {
-            phpgrid_error("يرجى   اختيار التصنيف   ");
+    $User_names = addslashes($_SESSION['AppLoginName'] ?? 'admin');
+    $mss = date('Y-m-d H:i:s');
+    $Is_Actieved = addslashes($data["params"]["Is_Actieved"] ?? 'Yes');
+
+    $result = 0;
+    try {
+        $getlan = $app_func->query("select * from languages");
+        while ($row = $getlan->fetch_assoc()) {
+            $lang_id1 = intval($row['lang_id']);
+            $newquerys = "INSERT INTO `project`(`project_id`, `activity_id`, `sector_id`, `lang_id`, `project_name`, `project_short_desc`, `project_content`, `project_baner`, `project_img`, `project_imgs`, `order_id`, `is_featured`, `creating_date`, `Is_Actieved`, `created_by`, `User_id`) VALUES
+('$project_id', '$activity_id', '$sector_id', '$lang_id1', '$project_name', '$project_short_desc', '$project_content', '$Pathbaner', '$Pathimg', '$Pathimgs', '$order_id', '$is_featured', '$mss', '$Is_Actieved', '$User_names', '$userid')";
+            $result = $app_func->query($newquerys);
         }
+    } catch (\Throwable $e) {
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());
+    }
 
-  
-   
-  
-   $errs=$app_func->error();
-
-   $msg="خطاء غير متوقع: " .$errs;
-     phpgrid_error($msg);   
-    
-}
-
-
+    if (!$result) {
+        $errs = $app_func->error();
+        $msg = "خطاء غير متوقع: " . $errs;
+        phpgrid_error($msg);
+    }
 }
 
 //---------------------Edit funcation start here----------------
 
 function update_data($data)
 {
-    global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;  
-    $User_names=$_SESSION['AppLoginName'];
-    $mss=date('Y-m-d');
-    list($lang_id,$project_id) = explode("-",$data["pk"]);
+    global $Applogins_cls, $app_func;
+    $userid = intval($Applogins_cls->useridx ?? 1);
+    $User_names = addslashes($_SESSION['AppLoginName'] ?? 'admin');
+    $mss = date('Y-m-d H:i:s');
 
-    $langid=$lang_id;
-    $empno=$project_id;
-      
-         
-       
-  $s = array();
-  foreach($data["params"] as $k=>$v)
-  {
-    
-     if ($k!="getimage" && $k!="getimagebanar" && $k!="getimages") {
-            $vv=str_replace("'","",$v);
-            $s[] = "$k = '$vv'";
+    $pk = $data["pk"] ?? ($data["id"] ?? '');
+    $parts = explode("-", $pk);
+    $langid = intval($parts[0] ?? 0);
+    $empno = intval($parts[1] ?? 0);
+    if ($empno <= 0) {
+        $empno = intval($data["project_id"] ?? 0);
+    }
+
+    $allowed = array('sector_id', 'activity_id', 'project_name', 'project_short_desc', 'project_content', 'project_baner', 'project_img', 'project_imgs', 'order_id', 'is_featured', 'Is_Actieved');
+    $s = array();
+    foreach ($data["params"] as $k => $v) {
+        if (in_array($k, $allowed)) {
+            $vv = in_array($k, array('sector_id', 'activity_id', 'order_id')) ? (!empty($v) ? intval($v) : 1) : addslashes($v);
+            $s[] = "`$k` = '$vv'";
         }
+    }
+    $s[] = "`Modify_date` = '$mss'";
+    $s[] = "`created_by` = '$User_names'";
+    $s[] = "`User_id` = '$userid'";
+    $s_str = implode(", ", $s);
 
-    
-        
-  }
-  $s = implode(",",$s);
-    $set=",Modify_date='$mss',created_by='$User_names',User_id='$userid' ";
-  $s=$s." ".$set;
- 
-  
-  $w = "project_id =$empno and lang_id='$langid' ";
-    
-$result = $app_func->query("UPDATE project set  $s WHERE $w");
- // phpgrid_error("UPDATE projects_news set  $s WHERE $w");
-// phpgrid_error($result);
-    
-if (!$result) {
-    $errs=$app_func->error();
-   $k1="title_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error(" يوجد عميل مضاف مسبقاً بهذا الاسم لايُسمح بالتكرار  تاكد من الاسم العربي");
-   }
-     $errs=$app_func->error();
-   $k1="cmpny_name_en_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error(" يوجد عميل مضاف مسبقاً بهذا الاسم لايُسمح بالتكرار  تاكد من الاسم الانجليزي");
-   }
-       $errs=$app_func->error();
-   $k1="keyword_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error("هذا الايميل مقترن بعميل اخر لايًسمح بالتكرار ادخل ايميل جديد");
-   }
-   $errs=$app_func->error();
-   $k1="published_state_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error("رقم الجوال موجود مسبقاً لايمسح بالتكرار ادخل رقم جديد");
-   }
-    $errs=$app_func->error();
-   $k1="Is_visible";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error("رقم الفاكس موجود مسبقاً لايمسح بالتكرار ادخل رقم جديد");
-   }
-  
-   $errs=$app_func->error();
+    $w = "project_id = $empno";
+    if ($langid > 0) {
+        $w .= " AND lang_id = '$langid'";
+    }
 
-   $msg="خطاء غير متوقع: " .$errs;
-     phpgrid_error($msg);   
-    
-}
+    try {
+        $result = $app_func->query("UPDATE project SET $s_str WHERE $w");
+        if (!$result) {
+            phpgrid_error("خطاء غير متوقع: " . $app_func->error());
+        }
+    } catch (\Throwable $e) {
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());
+    }
 }
 
 //---------------------filter_display funcation start here----------------
 function filter_display($data) 
 { 
-    
     foreach($data["params"] as &$d) 
     { 
         $project_id= $d["project_id"];
@@ -597,52 +535,38 @@ function filter_display($data)
         if ($isactivs=="Yes")
         {
             $d["Is_Actieved"] ='فعال';
-
         }else{
             $d["Is_Actieved"] ='غير فعال';
         }
 
-
-
         $d["type_icon_path"] = techcms_render_grid_image($d["project_img"] ?? "");   
-        
     } 
 } 
-
 
 //---------------------delete_data funcation start here----------------
 
 function delete_data($data)
 { 
-  global $Applogins_cls,$app_func;
-    list($lang_id,$project_id) = explode("-",$data["pk"]);
-
-    $langid=$lang_id;
-    $empno=$project_id;
-
-    $res=0;
-    $getlan=$app_func->query("select * from languages");
-     while ($row=$getlan->fetch_assoc()) {
-        $lang_id1=$row['lang_id'];
-        $w = "project_id = $empno and lang_id='$lang_id1' ";
-        $res=$app_func->query("DELETE from project WHERE $w");
+    global $Applogins_cls, $app_func;
+    $pk = $data["pk"] ?? ($data["id"] ?? '');
+    $parts = explode("-", $pk);
+    $empno = intval($parts[1] ?? 0);
+    if ($empno <= 0) {
+        $empno = intval($data["project_id"] ?? 0);
     }
 
- 
-    $errnos=$app_func->error();
-    if (!$res) {
-  $errs=$app_func->error();
-    if ($errnos==1451){
-    $msg="لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبه به في جداول اخرى";
-     phpgrid_error($msg); 
-   }else{
-    $msg="حدث خطاء غير متوقع رقم الخطاء:".$errnos."  msg".$errs;
-   }
-   
+    try {
+        $res = $app_func->query("DELETE from project WHERE project_id = $empno");
+        if (!$res) {
+            phpgrid_error("خطاء غير متوقع: " . $app_func->error());
         }
-
-
-
+    } catch (\Throwable $e) {
+        if ($app_func->errno() == 1451) {
+            phpgrid_error("لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبطة به في جداول أخرى");
+        } else {
+            phpgrid_error("حدث خطاء غير متوقع: " . $e->getMessage());
+        }
+    }
 }
 
 function check_error($err,$searchfor)
