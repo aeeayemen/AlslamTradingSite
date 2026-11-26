@@ -386,73 +386,48 @@ $gridUser->set_events($eU);
 
 function add_dataUser($data)
 {
+    global $Applogins_cls, $app_func;
 
+    $User_id = $app_func->GetOrderTable('User_id', 'employees_users');
+    $grup_id = !empty($data["params"]["grup_id"]) ? intval($data["params"]["grup_id"]) : 1;
+    $APassword = $data["params"]["APassword"] ?? '';
+    $APassword1 = $data["params"]["APassword1"] ?? '';
+    $Usernames = addslashes($data["params"]["Username"] ?? '');
+    $User_Note = addslashes($data["params"]["User_Note"] ?? '');
+    $Emp_Name_ar = addslashes($data["params"]["Shown_Name"] ?? '');
+    $Is_Actived = addslashes($data["params"]["Is_Actived"] ?? 'Yes');
+    $Emp_Email = addslashes($data["params"]["Primary_Email"] ?? '');
+    $imagepath = addslashes($data["params"]["Logopaht"] ?? '');
+    $Moblile_No = addslashes($data["params"]["Moblile_No"] ?? '');
 
-  global $Applogins_cls,$app_func;
- 
-      $User_id=$app_func->GetOrderTable('User_id','employees_users');
-$grup_id=$data["params"]["grup_id"];  
-$APassword=$data["params"]["APassword"];
-$APassword1=$data["params"]["APassword1"];;
-$Usernames=$data["params"]["Username"];
-$User_Note=$data["params"]["User_Note"];
-$Emp_Name_ar=$data["params"]["Shown_Name"];
-$Is_Actived=$data["params"]["Is_Actived"];
-$User_nam=$_SESSION['AppLoginName'];
-$Emp_Email=$data["params"]["Primary_Email"];
-$imagepath=$data["params"]["Logopaht"];
-$Moblile_No=$data["params"]["Moblile_No"];
-if($APassword!=$APassword1)
-{
- phpgrid_error("كلمات المرور التي ادخلتها غير متطابقة تاكد من البيانات");
- exit;   
-}
- // if(!eregi("^([a-z])*$", $Usernames))
- // {
- //  phpgrid_error("يجب ان يكون اسم المستخدم مكوناً من الاحرف الانجليزيه فقط".$APassword1);
- // exit; 
- // }
+    if ($APassword != $APassword1) {
+        phpgrid_error("كلمات المرور التي ادخلتها غير متطابقة تاكد من البيانات");
+        exit;
+    }
 
- 
+    $add_dates = date('Y-m-d H:i:s');
+    $RelatedKey = $app_func->random(10, '1234567890');
+    $userids = $app_func->generateRandID2();
+    $encrpypass = md5($APassword);
 
-$mss=date('Y-m-d');
-$add_dates=$mss;
-$RelatedKey=$app_func->random(10,'1234567890');
-$Password_Salts=$app_func->generateRandID();
-$Actived_Keys=$app_func->generateRandID2();
-$userids=$app_func->generateRandID2();
-$encrpypass=md5($APassword);
-        
- 
-$newquerys="insert into employees_users (grup_id,User_id,Username,Shown_Name, User_Key,APassword,Primary_Email, Moblile_No, Is_Actived,RelatedKey,User_Note, Logopaht,adding_date) values 
-($grup_id,'$User_id','$Usernames','$Emp_Name_ar','$userids','$encrpypass','$Emp_Email','$Moblile_No','$Is_Actived','$RelatedKey','$User_Note','$imagepath','$add_dates')";
+    $newquerys = "insert into employees_users (grup_id, User_id, Username, Shown_Name, User_Key, APassword, Primary_Email, Moblile_No, Is_Actived, RelatedKey, User_Note, Logopaht, adding_date) values 
+($grup_id, '$User_id', '$Usernames', '$Emp_Name_ar', '$userids', '$encrpypass', '$Emp_Email', '$Moblile_No', '$Is_Actieved', '$RelatedKey', '$User_Note', '$imagepath', '$add_dates')";
 
-$result = $app_func->query($newquerys);
-if (!$result) {
-    $errs=$app_func->error();
-    
-   
-    
-   $k1="Duplicate entry";
-   $chkrslt=$app_func->check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error("موجود   مسبقاً");
-   }
- 
-   $k1="FOREIGN KEY";
-   $chkrslt=$app_func->check_error($errs,$k1);
-   if($chkrslt)
-   {
-    phpgrid_error("يجب عليك    تعبة   الحقول   الفارغة");
-   }
-
-   $msg="Invalid query: " .$errs;
-     phpgrid_error($msg);   
-    
-}
-
-
+    try {
+        $result = $app_func->query($newquerys);
+        if (!$result) {
+            phpgrid_error("Invalid query: " . $app_func->error());
+        }
+    } catch (\Throwable $e) {
+        $errs = $e->getMessage();
+        if (strpos($errs, "Duplicate entry") !== false) {
+            phpgrid_error("موجود مسبقاً");
+        }
+        if (strpos($errs, "FOREIGN KEY") !== false) {
+            phpgrid_error("يجب عليك تعبئة الحقول الفارغة");
+        }
+        phpgrid_error("Invalid query: " . $errs);
+    }
 }
 //-------------------------------
  
@@ -472,96 +447,78 @@ $result = $app_func->query("$s");
 //-------------------------------------------------
 function update_dataUser($data)
 {
+    global $Applogins_cls, $app_func;
+    $User_names = $_SESSION['AppLoginName'] ?? 'admin';
 
-  global $Applogins_cls,$app_func;
-    $User_names=$_SESSION['AppLoginName'];
-   $mss=date('Y-m-d');
-   
-   
-   $grup_id=$data["params"]["grup_id"]; 
-    $User_id=$data["User_id"];
-     $Username=$data["params"]["Username"];
-    $User_Note=$data["params"]["User_Note"];
-    $Is_Actived=$data["params"]["Is_Actived"];
-    $Is_Blocked=$data["params"]["Is_Blocked"];
-    $Is_suberadmin=$data["params"]["Is_suberadmin"];
-    $APassword=$data["params"]["APassword"];
-    $APassword1=$data["params"]["APassword1"];
-    $adp="";
-    $changepass=$data["params"]["changepass"];
-$Emp_Name_ar=$data["params"]["Shown_Name"];
-$Is_Actived=$data["params"]["Is_Actived"];
-$User_nam=$_SESSION['AppLoginName'];
-$Emp_Email=$data["params"]["Primary_Email"];
-$imagepath=$data["params"]["Logopaht"];
-$Moblile_No=$data["params"]["Moblile_No"];
-// $RelatedKey=$data["params"]["RelatedKey"];
-// ,RelatedKey='$RelatedKey',
-    $encrpypass=md5($APassword);
-     if ($changepass==0) {
-       
-   
-    if($APassword=="null" && $APassword1=="null")
-    {
-   $adp=" ";  
-    }else{
-     if($APassword!=$APassword1)
-        {
-    phpgrid_error("كلمات المرور التي ادخلتها غير متطابقة تاكد من البيانات".$APassword." ".$APassword1);
-    exit;   
-        }else{
-           $adp=" APassword='$encrpypass',"; 
-        }   
+    $grup_id = !empty($data["params"]["grup_id"]) ? intval($data["params"]["grup_id"]) : 1;
+    $User_id = intval($data["User_id"] ?? ($data["id"] ?? 0));
+    $Username = addslashes($data["params"]["Username"] ?? '');
+    $User_Note = addslashes($data["params"]["User_Note"] ?? '');
+    $Is_Actived = addslashes($data["params"]["Is_Actived"] ?? 'Yes');
+    $Is_Blocked = !empty($data["params"]["Is_Blocked"]) ? intval($data["params"]["Is_Blocked"]) : 0;
+    $Is_suberadmin = isset($data["params"]["Is_suberadmin"]) && $data["params"]["Is_suberadmin"] !== '' ? intval($data["params"]["Is_suberadmin"]) : 1;
+    $APassword = $data["params"]["APassword"] ?? 'null';
+    $APassword1 = $data["params"]["APassword1"] ?? 'null';
+    $adp = "";
+    $changepass = intval($data["params"]["changepass"] ?? 0);
+    $Emp_Name_ar = addslashes($data["params"]["Shown_Name"] ?? '');
+    $Emp_Email = addslashes($data["params"]["Primary_Email"] ?? '');
+    $imagepath = addslashes($data["params"]["Logopaht"] ?? '');
+    $Moblile_No = addslashes($data["params"]["Moblile_No"] ?? '');
+
+    if ($changepass == 0) {
+        if (($APassword == "null" && $APassword1 == "null") || ($APassword === '' && $APassword1 === '')) {
+            $adp = " ";
+        } else {
+            if ($APassword != $APassword1) {
+                phpgrid_error("كلمات المرور التي ادخلتها غير متطابقة تاكد من البيانات");
+                exit;
+            } else {
+                $encrpypass = md5($APassword);
+                $adp = " APassword='$encrpypass',";
+            }
+        }
     }
-     }
-     
-    $currentuser="null";
-     $result=$app_func->select("SELECT  Username FROM  employees_users where User_id=$User_id");
-     $currentuser=$result[0]["Username"];
- 
-    if($Is_Blocked==1 && ($User_names==$currentuser))
-    {
-    phpgrid_error("لايمكنك حظر نفسك لن تتمكن من تسجيل الدخول");
-    exit;
-   }
 
-  $w = " User_id =$User_id ";
-$s=" UPDATE employees_users set  $adp grup_id='$grup_id',Shown_Name='$Emp_Name_ar',Primary_Email='$Emp_Email',Moblile_No='$Moblile_No',Username='$Username',Logopaht='$imagepath', Is_Blocked='$Is_Blocked',Is_suberadmin='$Is_suberadmin',Is_Actived='$Is_Actived',Blocked_Date='$mss',User_Note='$User_Note',Modify_by='$User_names',Modify_date='$mss',AUser_name='$User_names' WHERE $w";  
+    $currentuser = "null";
+    $result = $app_func->select("SELECT Username FROM employees_users where User_id=$User_id");
+    if (!empty($result[0]["Username"])) {
+        $currentuser = $result[0]["Username"];
+    }
 
-$result = $app_func->query("$s");
-if (!$result) {
-    $errs=$app_func->error();
-  
-   
-  
-   $k1="Duplicate entry";
-   $chkrslt=$app_func->check_error($errs,$k1);
-   if($chkrslt)
-   {
-phpgrid_error("موجود   مسبقاً");
-   }
- 
-   $k1="FOREIGN KEY";
-   $chkrslt=$app_func->check_error($errs,$k1);
-   if($chkrslt)
-   {
-    phpgrid_error("يجب عليك    تعبة   الحقول   الفارغة");
-   }
+    if ($Is_Blocked == 1 && ($User_names == $currentuser)) {
+        phpgrid_error("لايمكنك حظر نفسك لن تتمكن من تسجيل الدخول");
+        exit;
+    }
 
-   $msg="Invalid query: " .$errs;
-     phpgrid_error($msg);   
-    
-}else{
+    $w = " User_id = $User_id ";
+    $s = " UPDATE employees_users set $adp grup_id='$grup_id', Shown_Name='$Emp_Name_ar', Primary_Email='$Emp_Email', Moblile_No='$Moblile_No', Username='$Username', Logopaht='$imagepath', Is_Blocked='$Is_Blocked', Is_suberadmin='$Is_suberadmin', Is_Actived='$Is_Actived', User_Note='$User_Note' WHERE $w";
 
-
-  if ($Is_Actived=="No") {
-      $message="تم الغاء تفعيل حسابك يرجى مراجعة خدمة العملاء  ";
-      $subject="Go Application";
-      $app_func->SendEmail($Emp_Email,$message,$subject); 
-  }
-
-}
-
+    try {
+        $result = $app_func->query($s);
+        if (!$result) {
+            phpgrid_error("Invalid query: " . $app_func->error());
+        } else {
+            if ($Is_Actived == "No" && !empty($Emp_Email)) {
+                $message = "تم الغاء تفعيل حسابك يرجى مراجعة خدمة العملاء  ";
+                $subject = "Go Application";
+                try {
+                    $app_func->SendEmail($Emp_Email, $message, $subject);
+                } catch (\Throwable $mailErr) {
+                    // ignore mail failure
+                }
+            }
+        }
+    } catch (\Throwable $e) {
+        $errs = $e->getMessage();
+        if (strpos($errs, "Duplicate entry") !== false) {
+            phpgrid_error("موجود مسبقاً");
+        }
+        if (strpos($errs, "FOREIGN KEY") !== false) {
+            phpgrid_error("يجب عليك تعبئة الحقول الفارغة");
+        }
+        phpgrid_error("Invalid query: " . $errs);
+    }
 }
 
 //---------------------filter_display funcation start here----------------
@@ -643,22 +600,21 @@ function delete_dataUser($data)
 
 function delete_user($data)
 {
-    global $Applogins_cls,$app_func;
-      $empno = $data["User_id"];
-  $w = "User_id = $empno and Is_suberadmin<>1";
-  $res=$app_func->query("DELETE from employees_users WHERE $w");
-  
-    if (!$res) {
-  $errs=$app_func->error();
-    if ($errnos==1451){
-        //update_fromdelete($w); to block user when we can't delete it '
-    $msg="لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبطة  به في جداول اخرى";
-     phpgrid_error($msg); 
-   }else{
-    $msg="حدث خطاء غير متوقع رقم الخطاء:".$errnos."  msg".$errs;
-   }
-   
+    global $Applogins_cls, $app_func;
+    $empno = intval($data["User_id"] ?? ($data["id"] ?? 0));
+    $w = "User_id = $empno and Is_suberadmin<>1";
+    try {
+        $res = $app_func->query("DELETE from employees_users WHERE $w");
+        if (!$res) {
+            phpgrid_error("حدث خطاء غير متوقع: " . $app_func->error());
         }
+    } catch (\Throwable $e) {
+        if ($app_func->errno() == 1451) {
+            phpgrid_error("لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبطة  به في جداول اخرى");
+        } else {
+            phpgrid_error("حدث خطاء غير متوقع: " . $e->getMessage());
+        }
+    }
 }
  
 
