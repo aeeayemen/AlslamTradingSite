@@ -78,7 +78,7 @@ $colU["stype"] = "select";
 $colU["align"] = "center";  
 
 $colU["edittype"] = "select"; // render as select 
-$str = $gridUser->get_dropdown_values("select distinct privilege_groups.grup_id as k, privilege_groups.grup_title_ar as v from privilege_groups where Is_Actieved='1'  ");
+$str = $gridUser->get_dropdown_values("select distinct privilege_groups.grup_id as k, privilege_groups.grup_title_ar as v from privilege_groups where (Is_Actieved='Yes' OR Is_Actieved='1') ");
 $colU["editoptions"] = array( "value"=>$str); 
 $colU["searchoptions"] = array("value" =>$str);           
 $colU["editrules"] = array("required"=>true);
@@ -97,7 +97,7 @@ $colU["name"] = "grup_title_ar";
 $colU["editable"] = false;
 $colU["isnull"] = true; 
 $colU["width"] = "100";
-$client_lookup = $gridUser->get_dropdown_values("select distinct privilege_groups.grup_id as k, privilege_groups.grup_title_ar as v from privilege_groups where Is_Actieved='1' and Is_configrated='1' ");  
+$client_lookup = $gridUser->get_dropdown_values("select distinct privilege_groups.grup_id as k, privilege_groups.grup_title_ar as v from privilege_groups where (Is_Actieved='Yes' OR Is_Actieved='1') and Is_configrated='1' ");  
 $colU["stype"] = "select";
 $colU["align"] = "center";  
 $colU["searchoptions"] = array("value" => ":;".$client_lookup); 
