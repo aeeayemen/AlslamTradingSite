@@ -317,135 +317,117 @@ $grid->set_events($e);
 
 function add_data($data)
 {
-         global $Applogins_cls,$app_func;
+    global $Applogins_cls, $app_func;
+    $userid = intval($Applogins_cls->useridx ?? 1);
+    $Cat_id = $app_func->GetOrderTable('Cat_id', 'app_pages_categories');
 
-    $userid=$Applogins_cls->useridx;  
- 
-    $Cat_id=$app_func->GetOrderTable('Cat_id','app_pages_categories');
-$User_names=$_SESSION['AppLoginName'];
-$Cat_title_ars=$data["params"]["Cat_title_ar"];
-$Is_Parent_Menu=$data["params"]["Is_Parent_Menu"];
+    $Cat_title_ars = addslashes($data["params"]["Cat_title_ar"] ?? '');
+    $Cat_title_en = addslashes($data["params"]["Cat_title_en"] ?? '');
+    $Cat_details = addslashes($data["params"]["Cat_details"] ?? '');
+    $menu_icon = addslashes($data["params"]["menu_icon"] ?? 'fa fa-folder');
+    $Is_Enabled = addslashes($data["params"]["Is_Enabled"] ?? 'Yes');
+    $Is_adminpage = addslashes($data["params"]["Is_adminpage"] ?? 'Yes');
+    $Is_visible = addslashes($data["params"]["Is_visible"] ?? 'Yes');
+    $Is_Parent_Menu = addslashes($data["params"]["Is_Parent_Menu"] ?? 'No');
+    $Parent_id = !empty($data["params"]["Parent_id"]) ? intval($data["params"]["Parent_id"]) : 0;
+    $Menu_order = !empty($data["params"]["Menu_order"]) ? intval($data["params"]["Menu_order"]) : 1;
+    $Menu_level = !empty($data["params"]["Menu_level"]) ? intval($data["params"]["Menu_level"]) : 1;
+    $mss = date('Y-m-d H:i:s');
 
-$Cat_title_en=$data["params"]["Cat_title_en"];
-$menu_icon=$data["params"]["menu_icon"];
+    $newquerys = "insert into app_pages_categories (Cat_id, Cat_title_ar, Cat_title_en, Cat_details, menu_icon, Is_Enabled, Is_adminpage, Is_visible, Is_Parent_Menu, Parent_id, Menu_order, Menu_level, adding_date, User_id) values 
+('$Cat_id', '$Cat_title_ars', '$Cat_title_en', '$Cat_details', '$menu_icon', '$Is_Enabled', '$Is_adminpage', '$Is_visible', '$Is_Parent_Menu', '$Parent_id', '$Menu_order', '$Menu_level', '$mss', '$userid')";
 
-$Is_adminpage=$data["params"]["Is_adminpage"];
-$Menu_level=$data["params"]["Menu_level"];
-$Menu_order=$data["params"]["Menu_order"];
-$Cat_details=$data["params"]["Cat_details"];
-$Is_Enabled=$data["params"]["Is_Enabled"];
-$expiry_years=0;
-$mss=date('Y-m-d');
-$add_dates=$mss;
-$Last_Modifys=$add_dates;
-$Is_visible=$data["params"]["Is_visible"];
-$newquerys="insert into app_pages_categories (Cat_id,Cat_title_ar,Cat_title_en,menu_icon,Menu_level,Menu_order,Cat_details,Is_Enabled, Is_Parent_Menu,Is_visible,User_id) values 
-('$Cat_id','$Cat_title_ars','$Cat_title_en','$menu_icon','$Menu_level','$Menu_order','$Cat_details','$Is_Enabled','$Is_Parent_Menu','$Is_visible','$userid')";
- 
-$result = $app_func->query($newquerys);
-if (!$result) {
-   
-   $errs=$app_func->error();
-   $k1="tagents_group_title_ar_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-    phpgrid_error("لايُسمح بادخال اسم متكرر تأكد من التسمية- عربي");
-   }
-   
-   
-   $msg="Invalid query: " .$app_func->error();
-     phpgrid_error($msg);   
-    
-}
-
-
+    try {
+        $result = $app_func->query($newquerys);
+        if (!$result) {
+            $errs = $app_func->error();
+            if (check_error($errs, "tagents_group_title_ar_UK")) {
+                phpgrid_error("لايُسمح بادخال اسم متكرر تأكد من التسمية- عربي");
+            }
+            phpgrid_error("Invalid query: " . $errs);
+        }
+    } catch (\Throwable $e) {
+        if (check_error($e->getMessage(), "Duplicate entry") || check_error($e->getMessage(), "tagents_group_title_ar_UK")) {
+            phpgrid_error("لايُسمح بادخال اسم متكرر تأكد من التسمية- عربي");
+        }
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());
+    }
 }
 
 //---------------------Edit funcation start here----------------
 
-
-
 function update_data($data)
 {
-      global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;  
-    $User_names=$_SESSION['AppLoginName'];
-   $mss=date('Y-m-d');
-     //$data["params"]["Last_Modify"]=$mss;
-      //$data["params"]["User_name"]=$User_names;
-        $empno= $data["Cat_id"];
-  $s = array();
-  foreach($data["params"] as $k=>$v)
-  {
-    
-     
-    $s[] = "$k = '$v'";
-        
-  }
-  $s = implode(",",$s);
-    
-  $w = "Cat_id = $empno ";
-     
-$result = $app_func->query("UPDATE app_pages_categories set  $s WHERE $w");
-if (!$result) {
-   
-   $errs=$app_func->error();
-   $k1="tagents_group_title_ar_UK";
-   $chkrslt=check_error($errs,$k1);
-   if($chkrslt)
-   {
-    phpgrid_error("لايُسمح بادخال اسم متكرر تأكد من التسمية- عربي");
-   }
-   $msg="Invalid query: " .$app_func->error();
-     phpgrid_error($msg);   
-    
-}
+    global $Applogins_cls, $app_func;
+    $userid = intval($Applogins_cls->useridx ?? 1);
+    $mss = date('Y-m-d H:i:s');
+    $empno = intval($data["Cat_id"] ?? ($data["id"] ?? 0));
 
+    $allowed = array('Cat_title_ar', 'Cat_title_en', 'Cat_details', 'menu_icon', 'Is_Enabled', 'Is_adminpage', 'Is_visible', 'Is_Parent_Menu', 'Parent_id', 'Menu_order', 'Menu_level');
+    $s = array();
+    foreach ($data["params"] as $k => $v) {
+        if (in_array($k, $allowed)) {
+            if ($k === 'Parent_id') {
+                $vv = !empty($v) ? intval($v) : 0;
+            } elseif (in_array($k, array('Menu_order', 'Menu_level'))) {
+                $vv = !empty($v) ? intval($v) : 1;
+            } else {
+                $vv = addslashes($v);
+            }
+            $s[] = "`$k` = '$vv'";
+        }
+    }
+    $s[] = "`Modify_date` = '$mss'";
+    $s[] = "`User_id` = '$userid'";
+    $s_str = implode(", ", $s);
+
+    $w = "Cat_id = $empno";
+    try {
+        $result = $app_func->query("UPDATE app_pages_categories SET $s_str WHERE $w");
+        if (!$result) {
+            phpgrid_error("Invalid query: " . $app_func->error());
+        }
+    } catch (\Throwable $e) {
+        if (check_error($e->getMessage(), "Duplicate entry") || check_error($e->getMessage(), "tagents_group_title_ar_UK")) {
+            phpgrid_error("لايُسمح بادخال اسم متكرر تأكد من التسمية- عربي");
+        }
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());
+    }
 }
-//---------------------filter_display funcation start here----------------
 //---------------------filter_display funcation start here----------------
 function filter_display($data) 
 { 
-      
     foreach($data["params"] as &$d) 
     { 
-        
-        
-        
-          $isactivs= $d["Is_visible"];
+        $isactivs= $d["Is_visible"];
         if ($isactivs=="Yes")
         {
-           $d["Is_visible"] ='فعال';
-           
+            $d["Is_visible"] ='فعال';
         }else{
             $d["Is_visible"] ='غير فعال';
         }
-     
-} 
-
+    } 
 }
 
 //---------------------delete_data funcation start here----------------
 
 function delete_data($data)
 {
-    global $Applogins_cls,$app_func;
-  $city=$data["Cat_id"];
-  $w = "Cat_id = $city";
-  $res=$app_func->query("DELETE from app_pages_categories WHERE $w");
-  
-    if (!$res) {
-  $errs=$app_func->error();
-    if ($errnos==1451){
-    $msg="لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبه به في جداول اخرى";
-     phpgrid_error($msg); 
-   }else{
-    $msg="حدث خطاء غير متوقع رقم الخطاء:".$errnos."  msg".$errs;
-   }
-   
+    global $Applogins_cls, $app_func;
+    $city = intval($data["Cat_id"] ?? ($data["id"] ?? 0));
+    $w = "Cat_id = $city";
+    try {
+        $res = $app_func->query("DELETE from app_pages_categories WHERE $w");
+        if (!$res) {
+            phpgrid_error("خطاء غير متوقع: " . $app_func->error());
         }
-
+    } catch (\Throwable $e) {
+        if ($app_func->errno() == 1451) {
+            phpgrid_error("لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبطة به في جداول أخرى");
+        } else {
+            phpgrid_error("حدث خطاء غير متوقع: " . $e->getMessage());
+        }
+    }
 }
 
 function check_error($err,$searchfor)
