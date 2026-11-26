@@ -2217,7 +2217,7 @@ class jqgrid
 		}
 
 		// generate main json
-		if (isset($_REQUEST['jqgrid_page']) || (isset($_REQUEST['nd']) && isset($_REQUEST['rows'])))
+		if (isset($_REQUEST['jqgrid_page']) || (isset($_REQUEST['nd']) && isset($_REQUEST['rows'])) || (!empty($_REQUEST['grid_id']) && isset($_REQUEST['rows'])))
 		{
 			$page = intval($_REQUEST['jqgrid_page'] ?? ($_REQUEST['page'] ?? 1)); // get the requested page
 			$limit = intval($_REQUEST['rows'] ?? 20); // get how many rows we want to have into the grid
