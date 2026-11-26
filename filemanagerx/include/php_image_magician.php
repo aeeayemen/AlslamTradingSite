@@ -2434,7 +2434,7 @@ class imageLib
     {
 
     // *** Perform a check or two.
-    if (!is_resource($this->imageResized)) { if ($this->debug) { die('saveImage: This is not a resource.'); }else{ die(); }}      
+    if (!is_resource($this->imageResized) && !($this->imageResized instanceof \GdImage)) { if ($this->debug) { die('saveImage: This is not a resource.'); }else{ die(); }}      
     $fileInfoArray = pathInfo($savePath);
     clearstatcache();
     if (!is_writable($fileInfoArray['dirname'])) {  if ($this->debug) { die('The path is not writable. Please check your permissions.'); }else{ die(); }} 
@@ -2509,7 +2509,7 @@ class imageLib
     #
   {
 
-    if (!is_resource($this->imageResized)) { if ($this->debug) { die('saveImage: This is not a resource.'); }else{ die(); }}  
+    if (!is_resource($this->imageResized) && !($this->imageResized instanceof \GdImage)) { if ($this->debug) { die('saveImage: This is not a resource.'); }else{ die(); }}  
 
         switch($fileType)
         {
@@ -3036,7 +3036,7 @@ class imageLib
     # Notes:
     #
   {
-    if (!is_resource($img)) {
+    if (!is_resource($img) && !($img instanceof \GdImage)) {
       return false;
     }
     return @ImageColorsForIndex($img, @ImageColorAt($img, $x, $y));
@@ -3225,7 +3225,7 @@ class imageLib
 ## --------------------------------------------------------
 
     public function __destruct() {
-    if (is_resource($this->imageResized)) {
+    if (is_resource($this->imageResized) || ($this->imageResized instanceof \GdImage)) {
       imagedestroy($this->imageResized);
     }
   } 
