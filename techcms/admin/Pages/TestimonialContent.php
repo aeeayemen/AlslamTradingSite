@@ -268,100 +268,87 @@ $grid->set_events($e);
 
 function add_data($data)
 {
-    global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;
+    global $Applogins_cls, $app_func;
+    $userid = intval($Applogins_cls->useridx ?? 1);
     
-    $Testimonial_id=$app_func->GetOrderTable('Testimonial_id','testimonial');
-    $lang_id=$data["params"]["lang_id"];
-    $Is_Actieved=$data["params"]["Is_Actieved"];
-    $Is_visible = $data["params"]["Is_visible"];
-    $User_names=$_SESSION['AppLoginName'];
-    $mss=date('Y-m-d');
-    $creating_date=$mss;
+    $Testimonial_id = $app_func->GetOrderTable('Testimonial_id', 'testimonial');
+    $Is_Actieved = addslashes($data["params"]["Is_Actieved"] ?? 'Yes');
+    $User_names = addslashes($_SESSION['AppLoginName'] ?? 'admin');
+    $mss = date('Y-m-d H:i:s');
+    $creating_date = $mss;
    
-    $TestimonialName=$data["params"]["TestimonialName"];
-    
-    $TestimonialImage = $data["params"]["TestimonialImage"];
-    $TestimonialContnet = $data["params"]["TestimonialContnet"];
+    $TestimonialName = addslashes($data["params"]["TestimonialName"] ?? '');
+    $TestimonialImage = addslashes($data["params"]["TestimonialImage"] ?? '');
+    $TestimonialContnet = addslashes($data["params"]["TestimonialContnet"] ?? '');
        
-    $result=0;
-    $getlan=$app_func->query("select * from languages");
-     while ($row=$getlan->fetch_assoc()) {
-      $lang_id1=$row['lang_id'];
-    
-$newquerys="insert into testimonial (`Testimonial_id`, `lang_id`, `TestimonialName`, `TestimonialImage`, `TestimonialContnet`,`Is_Actieved`,`created_by`, `creating_date`, `User_id`) values 
-('$Testimonial_id','$lang_id1','$TestimonialName','$TestimonialImage','$TestimonialContnet','$Is_Actieved','$User_names','$creating_date','$userid')";
-         $result = $app_func->query($newquerys);
- 
-}
-
-    if (!$result) {
-        $errs=$app_func->error();
-       
-        $errs=$app_func->error();
-        $k1="published_state_UK";
-        $chkrslt=check_error($errs,$k1);
-        if($chkrslt)
-        {
-            phpgrid_error("رقم الجوال موجود مسبقاً لايمسح بالتكرار ادخل رقم جديد");
+    $result = 0;
+    try {
+        $getlan = $app_func->query("select * from languages");
+        while ($row = $getlan->fetch_assoc()) {
+            $lang_id1 = intval($row['lang_id']);
+            $newquerys = "insert into testimonial (`Testimonial_id`, `lang_id`, `TestimonialName`, `TestimonialImage`, `TestimonialContnet`, `Is_Actieved`, `created_by`, `creating_date`, `User_id`) values 
+('$Testimonial_id', '$lang_id1', '$TestimonialName', '$TestimonialImage', '$TestimonialContnet', '$Is_Actieved', '$User_names', '$creating_date', '$userid')";
+            $result = $app_func->query($newquerys);
         }
-
-
-        $errs=$app_func->error();
-
-        $msg="خطاء غير متوقع: " .$errs;
-        phpgrid_error($msg);
-
+    } catch (\Throwable $e) {
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());
     }
 
-
+    if (!$result) {
+        $errs = $app_func->error();
+        $msg = "خطاء غير متوقع: " . $errs;
+        phpgrid_error($msg);
+    }
 }
 
 //---------------------Edit funcation start here----------------
 
 function update_data($data)
 {
-       global $Applogins_cls,$app_func;
-    $userid=$Applogins_cls->useridx;
-    $User_names=$_SESSION['AppLoginName'];
-    $mss=date('Y-m-d');
+    global $Applogins_cls, $app_func;
+    $userid = intval($Applogins_cls->useridx ?? 1);
+    $User_names = addslashes($_SESSION['AppLoginName'] ?? 'admin');
+    $mss = date('Y-m-d H:i:s');
 
-    list($lang_id,$Testimonial_id) = explode("-",$data["pk"]);
-
-    $langid=$lang_id;
-    $empno=$Testimonial_id;
-
-
-    $s = array();
-    foreach($data["params"] as $k=>$v)
-    {
-
-
-        if ($k!="getimage" && $k!="getfile") {
-            $vv=str_replace("'","",$v);
-            $s[] = "$k = '$vv'";
-        }
-
+    $pk = $data["pk"] ?? ($data["id"] ?? '');
+    $parts = explode("-", $pk);
+    $langid = intval($parts[0] ?? 0);
+    $empno = intval($parts[1] ?? 0);
+    if ($empno <= 0) {
+        $empno = intval($data["Testimonial_id"] ?? 0);
     }
-    $s = implode(",",$s);
-    $set=",Modify_date='$mss',created_by='$User_names',User_id='$userid' ";
-    $s=$s." ".$set;
 
-    $w = "Testimonial_id=$empno and lang_id='$langid' ";
-    $result = $app_func->query("UPDATE testimonial set  $s WHERE $w");
-// phpgrid_error($result);
-    if (!$result) {
-        $errs=$app_func->error();
-        $msg="خطاء غير متوقع: " .$errs;
-        phpgrid_error($msg);
+    $allowed = array('TestimonialName', 'TestimonialImage', 'TestimonialContnet', 'Is_Actieved');
+    $s = array();
+    foreach ($data["params"] as $k => $v) {
+        if (in_array($k, $allowed)) {
+            $vv = addslashes($v);
+            $s[] = "`$k` = '$vv'";
+        }
+    }
+    $s[] = "`Modify_date` = '$mss'";
+    $s[] = "`created_by` = '$User_names'";
+    $s[] = "`User_id` = '$userid'";
+    $s_str = implode(", ", $s);
 
+    $w = "Testimonial_id = $empno";
+    if ($langid > 0) {
+        $w .= " AND lang_id = '$langid'";
+    }
+
+    try {
+        $result = $app_func->query("UPDATE testimonial SET $s_str WHERE $w");
+        if (!$result) {
+            phpgrid_error("خطاء غير متوقع: " . $app_func->error());
+        }
+    } catch (\Throwable $e) {
+        phpgrid_error("خطاء غير متوقع: " . $e->getMessage());
     }
 }
 
 //---------------------filter_display funcation start here----------------
 function filter_display($data)
 {
-
     foreach($data["params"] as &$d)
     {
         $Testimonial_id= $d["Testimonial_id"];
@@ -369,52 +356,38 @@ function filter_display($data)
         if ($isactivs=="Yes")
         {
             $d["Is_Actieved"] ='فعال';
-
         }else{
             $d["Is_Actieved"] ='غير فعال';
         }
 
-
-       
         $d["type_icon_path2"] = techcms_render_grid_image($d["TestimonialImage"] ?? "");
-
-
-
     }
 }
-
 
 //---------------------delete_data funcation start here----------------
 
 function delete_data($data)
 {
-   global $Applogins_cls,$app_func;
-    list($lang_id,$Testimonial_id) = explode("-",$data["pk"]);
-
-    $langid=$lang_id;
-    $empno=$Testimonial_id;
-
-    $res=0;
-    $getlan=$app_func->query("select * from languages");
-     while ($row=$getlan->fetch_assoc()) {
-        $lang_id1=$row['lang_id'];
-        $w = "Testimonial_id = $empno and lang_id='$lang_id1' ";
-        $res=$app_func->query("DELETE from testimonial WHERE $w");
+    global $Applogins_cls, $app_func;
+    $pk = $data["pk"] ?? ($data["id"] ?? '');
+    $parts = explode("-", $pk);
+    $empno = intval($parts[1] ?? 0);
+    if ($empno <= 0) {
+        $empno = intval($data["Testimonial_id"] ?? 0);
     }
-    
-    if (!$res) {
-        $errs=$app_func->error();
-        if ($errnos==1451){
-            $msg="لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبه به في جداول اخرى";
-            phpgrid_error($msg);
-        }else{
-            $msg="حدث خطاء غير متوقع رقم الخطاء:".$errnos."  msg".$errs;
+
+    try {
+        $res = $app_func->query("DELETE from testimonial WHERE Testimonial_id = $empno");
+        if (!$res) {
+            phpgrid_error("خطاء غير متوقع: " . $app_func->error());
         }
-
+    } catch (\Throwable $e) {
+        if ($app_func->errno() == 1451) {
+            phpgrid_error("لايمكن حذف هذا السجل نظراً لوجود بيانات مرتبطة به في جداول أخرى");
+        } else {
+            phpgrid_error("حدث خطاء غير متوقع: " . $e->getMessage());
+        }
     }
-
-
-
 }
 
 function check_error($err,$searchfor)
