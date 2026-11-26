@@ -410,8 +410,9 @@ function add_dataUser($data)
     $userids = $app_func->generateRandID2();
     $encrpypass = md5($APassword);
 
-    $newquerys = "insert into employees_users (grup_id, User_id, Username, Shown_Name, User_Key, APassword, Primary_Email, Moblile_No, Is_Actived, RelatedKey, User_Note, Logopaht, adding_date) values 
-($grup_id, '$User_id', '$Usernames', '$Emp_Name_ar', '$userids', '$encrpypass', '$Emp_Email', '$Moblile_No', '$Is_Actieved', '$RelatedKey', '$User_Note', '$imagepath', '$add_dates')";
+    $Is_suberadmin = isset($data["params"]["Is_suberadmin"]) && $data["params"]["Is_suberadmin"] !== '' ? intval($data["params"]["Is_suberadmin"]) : 0;
+    $newquerys = "insert into employees_users (grup_id, User_id, Username, Shown_Name, User_Key, APassword, Primary_Email, Moblile_No, Is_suberadmin, Is_Actived, RelatedKey, User_Note, Logopaht, adding_date) values 
+($grup_id, '$User_id', '$Usernames', '$Emp_Name_ar', '$userids', '$encrpypass', '$Emp_Email', '$Moblile_No', '$Is_suberadmin', '$Is_Actived', '$RelatedKey', '$User_Note', '$imagepath', '$add_dates')";
 
     try {
         $result = $app_func->query($newquerys);
@@ -602,7 +603,11 @@ function delete_user($data)
 {
     global $Applogins_cls, $app_func;
     $empno = intval($data["User_id"] ?? ($data["id"] ?? 0));
-    $w = "User_id = $empno and Is_suberadmin<>1";
+    if ($empno <= 1) {
+        phpgrid_error("لايمكن حذف حساب المدير العام الرئيسي");
+        return;
+    }
+    $w = "User_id = $empno";
     try {
         $res = $app_func->query("DELETE from employees_users WHERE $w");
         if (!$res) {
