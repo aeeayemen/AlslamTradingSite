@@ -148,7 +148,7 @@ class jqgrid
 		$grid["form"]["nav"] = false;
 
 		### P ### - allow on http
-		$protocol = ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on") || $_SERVER["SERVER_PORT"] == "443" ) ? "https" : "http";
+		$protocol = ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on") || (isset($_SERVER["SERVER_PORT"]) && $_SERVER["SERVER_PORT"] == "443") || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == "https") || (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && strtolower($_SERVER['HTTP_X_FORWARDED_SSL']) == "on") ) ? "https" : "http";
 		$grid["url"] = "$protocol://".$_SERVER["HTTP_HOST"].$_SERVER["REQUEST_URI"];
 
 		### P ###
